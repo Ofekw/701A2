@@ -21,6 +21,7 @@
  */
 package japa.parser.ast;
 
+import symtab.Scope;
 import japa.parser.ast.visitor.DumpVisitor;
 import japa.parser.ast.visitor.GenericVisitor;
 import japa.parser.ast.visitor.VoidVisitor;
@@ -37,6 +38,8 @@ public abstract class Node {
     private final int endLine;
 
     private final int endColumn;
+    
+    protected Scope enclosingScope;
 
     /**
      * This attribute can store additional information from semantic analysis.
@@ -57,6 +60,14 @@ public abstract class Node {
         this.endLine = endLine;
         this.endColumn = endColumn;
     }
+    
+	public void setEnclosingScope(Scope enclosingScope) {
+		this.enclosingScope = enclosingScope;
+	}
+	
+	public Scope getEnclosingScope() {
+		return enclosingScope;
+	}
 
     /**
      * Use this to retrieve additional information associated to this node.

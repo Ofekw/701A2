@@ -2,6 +2,7 @@ package symtab;
 
 import java.util.HashMap;
 
+
 public class BaseScope implements Scope  {
 	
 	private Scope enclosingScope;
@@ -10,6 +11,9 @@ public class BaseScope implements Scope  {
 
 	public BaseScope(){
 		define(new BuiltInTypeSymbol("int"));
+		BuiltInTypeSymbol bool = new BuiltInTypeSymbol("boolean");
+		symbols.put("false", bool);
+		symbols.put("true", bool);
 		define(new BuiltInTypeSymbol("boolean"));
 		define(new BuiltInTypeSymbol("float"));
 		define(new BuiltInTypeSymbol("double"));
@@ -29,28 +33,25 @@ public class BaseScope implements Scope  {
 	}
 
 	public Symbol resolve(String name) {
-		return symbols.get(name);
+			// if the symbol exists in the current scope, return it
+			Symbol s = symbols.get(name);
+			if (s != null)
+				return s;
+			
+			// otherwise look in the enclosing scope, if there is one
+			if (enclosingScope != null)
+				return enclosingScope.resolve(name);
+			
+			// otherwise it doesn't exist
+			return null;
 	}
 	
-	public Symbol resolveForAll(String name){
-		Symbol symbol = symbols.get(name);
-		while (symbol == null){
-			Scope scope = getEnclosingScope();
-			if (scope == null){
-				return symbol;
-			}else{
-				symbol = scope.getSymbols().get(name);
-			}
-		}
-		return symbol;
-	}
 
 	@Override
 	public Scope getEnclosingScope() {
 		return this.enclosingScope;
 	}
 	
-	@Override
 	public HashMap<String,Symbol> getSymbols(){
 		return symbols;
 	}

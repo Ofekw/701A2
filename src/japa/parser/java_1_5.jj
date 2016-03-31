@@ -261,6 +261,7 @@ TOKEN :
 | < VOID: "void" >
 | < VOLATILE: "volatile" >
 | < WHILE: "while" >
+| < YIELD: "yield" >
 }
 
 /* LITERALS */

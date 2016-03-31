@@ -8,9 +8,9 @@ import java.io.PrintWriter;
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
-import japa.parser.ast.visitor.SillyBreakVisitor;
 import japa.parser.ast.visitor.DumpVisitor;
-import japa.parser.ast.visitor.SemanticsVisitor;
+import japa.parser.ast.visitor.ScopeVisitor;
+import japa.parser.ast.visitor.DefinitionVisitor;
 
 public class A2Compiler {
 	
@@ -23,12 +23,21 @@ public class A2Compiler {
 		JavaParser parser = new JavaParser(new FileReader(file));
 		CompilationUnit ast = parser.CompilationUnit();
 		
-		// perform visit 1...
-		SemanticsVisitor semanticsV = new SemanticsVisitor();
-		ast.accept(semanticsV, null);
+		//Create Scope/Typing Visitor
+		ScopeVisitor scopeV = new ScopeVisitor();
+		ast.accept(scopeV, null);
 		
-		// perform visit 2... etc etc 
-		// ...
+		//Create Parent Visitor
+		
+		
+		// Create Definition Visitor
+		DefinitionVisitor definitionV = new DefinitionVisitor();
+		ast.accept(definitionV, null);
+		
+		//Resolver
+		
+		
+		
 		
 		// perform visit N 
 		DumpVisitor printVisitor = new DumpVisitor();

@@ -7,6 +7,4 @@ public interface Scope {
 	public Scope getEnclosingScope();
 	public void define(Symbol symbol);
 	public Symbol resolve(String name);
-	public HashMap<String,Symbol> getSymbols();
-	public Symbol resolveForAll(String name);
 }
