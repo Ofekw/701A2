@@ -4,7 +4,7 @@ public class ClassSymbol extends ScopedSymbol implements Type {
 	
 
 	public ClassSymbol(String name) {
-		super(name, null, null);
+		super(name, new ObjectType(name), null);
 	}
 	
 	public ClassSymbol(String name, Type type) {

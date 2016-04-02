@@ -425,17 +425,6 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         printModifiers(n.getModifiers());
         n.getType().accept(this, arg);
         //TODO
-//        
-//        this.currentScope = new GlobalScope(currentScope);
-//        
-//        Symbol symOfVariable = this.currentScope.resolve(n.getType().toString());
-//        if(symOfVariable == null){
-//        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-//        }
-//        if(!(symOfVariable instanceof symtab.Type)){
-//        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
-//        }
-        
         n.setEnclosingScope(currentScope);
         
 
@@ -519,6 +508,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(AssignExpr n, Object arg) {
+    	n.setEnclosingScope(this.currentScope);
         n.getTarget().accept(this, arg);
         printer.print(" ");
         switch (n.getOperator()) {

@@ -11,15 +11,18 @@ public class BaseScope implements Scope  {
 
 	public BaseScope(){
 		define(new BuiltInTypeSymbol("int"));
-		BuiltInTypeSymbol bool = new BuiltInTypeSymbol("boolean");
-		symbols.put("false", bool);
-		symbols.put("true", bool);
 		define(new BuiltInTypeSymbol("boolean"));
+		define(new BuiltInTypeSymbol("false", "boolean"));
+		define(new BuiltInTypeSymbol("true", "boolean"));
+		define(new BuiltInTypeSymbol("boolean"));
+		define(new BuiltInTypeSymbol("String[]","[]"));
+		define(new BuiltInTypeSymbol("int[]","[]"));
 		define(new BuiltInTypeSymbol("float"));
 		define(new BuiltInTypeSymbol("double"));
 		define(new BuiltInTypeSymbol("byte"));
 		define(new BuiltInTypeSymbol("char"));
 		define(new BuiltInTypeSymbol("null"));
+		define(new BuiltInTypeSymbol("void"));
 		
 		define(new ClassSymbol("String"));
 	}

@@ -9,6 +9,7 @@ import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.visitor.DumpVisitor;
+import japa.parser.ast.visitor.ResolvingVisitor;
 import japa.parser.ast.visitor.ScopeVisitor;
 import japa.parser.ast.visitor.DefinitionVisitor;
 
@@ -35,7 +36,8 @@ public class A2Compiler {
 		ast.accept(definitionV, null);
 		
 		//Resolver
-		
+		ResolvingVisitor resolvingV = new ResolvingVisitor();
+		ast.accept(resolvingV, null);
 		
 		
 		
