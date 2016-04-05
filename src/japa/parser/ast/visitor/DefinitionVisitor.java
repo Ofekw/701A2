@@ -437,15 +437,15 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
         		throw new A2SemanticsException(v.getId().toString() + " on line " + v.getId().getBeginLine() + " is already defined. Try another variable name.");
         	}
 
-        	symtab.Type typeOfLeft = scope.resolve(varType).getType();
-
-        	symtab.Type typeOfRight = getTypeOfExpression(v.getInit(), scope);
-        	if(typeOfRight == null){
-        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-        	}
-        	if(typeOfRight.getName() != typeOfLeft.getName()){
-        		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getType().getBeginLine());
-        	}
+//        	symtab.Type typeOfLeft = scope.resolve(varType).getType();
+//
+//        	symtab.Type typeOfRight = getTypeOfExpression(v.getInit(), scope);
+//        	if(typeOfRight == null){
+//        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
+//        	}
+//        	if(typeOfRight.getName() != typeOfLeft.getName()){
+//        		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getType().getBeginLine());
+//        	}
         	symtab.Type type = scope.resolve(varType).getType();
         	Symbol symbol = new VariableSymbol(varName, type);
         	scope.define(symbol);
@@ -480,6 +480,9 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     				sym = scope.resolve("boolean");
     			}else if (init.getClass() == StringLiteralExpr.class){
     				sym = scope.resolve("String");
+    			}else if (init.getClass() == MethodCallExpr.class){
+    				// for each get argument type, deal with mutiple method paramterss, get type by using methodSym
+    				sym = scope.resolve(((MethodCallExpr) init).getName());
     			}
     			//TODO other primitive types (and others?)
     			else{
@@ -769,21 +772,19 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     public void visit(MethodCallExpr n, Object arg) {
         if (n.getScope() != null) {
             n.getScope().accept(this, arg);
-            printer.print(".");
+//            printer.print(".");
         }
-        printTypeArgs(n.getTypeArgs(), arg);
-        printer.print(n.getName());
-        printer.print("(");
-        if (n.getArgs() != null) {
-            for (Iterator<Expression> i = n.getArgs().iterator(); i.hasNext();) {
-                Expression e = i.next();
-                e.accept(this, arg);
-                if (i.hasNext()) {
-                    printer.print(", ");
-                }
-            }
-        }
-        printer.print(")");
+//        printTypeArgs(n.getTypeArgs(), arg);
+//        printer.print(n.getName());
+//        printer.print("(");
+//        if (n.getArgs() != null) {
+//            for (Iterator<Expression> i = n.getArgs().iterator(); i.hasNext();) {
+//                Expression e = i.next();
+////                e.accept(this, arg);
+//                }
+//            }
+//        }
+//        printer.print(")");
     }
 
     public void visit(ObjectCreationExpr n, Object arg) {
@@ -911,7 +912,7 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
         	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
         }
         symtab.Type type = scope.resolve(varType).getType();
-        Symbol symbol = new VariableSymbol(varName, type);
+        Symbol symbol = new MethodSymbol(varName, type, scope, n.getParameters());
         scope.define(symbol);
         //TODO deal with method types (ie resolve etc etc)
         

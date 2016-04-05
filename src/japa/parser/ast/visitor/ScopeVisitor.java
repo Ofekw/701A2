@@ -294,7 +294,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         }
 
         printer.print(n.getName());
-        
+        //TODO
         n.setEnclosingScope(currentScope);
         this.currentScope.define(new ClassSymbol(n.getName()));
         //TODO Look at modifiers and parents
@@ -718,6 +718,11 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
             n.getScope().accept(this, arg);
             printer.print(".");
         }
+        
+        //this.currentScope = new LocalScope(this.currentScope);
+        //TODO deal with method types (ie resolve etc etc)
+        n.setEnclosingScope(this.currentScope);
+        
         printTypeArgs(n.getTypeArgs(), arg);
         printer.print(n.getName());
         printer.print("(");
@@ -848,7 +853,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
             n.getJavaDoc().accept(this, arg);
         }
         
-        this.currentScope = new MethodSymbol(n.getName(), this.currentScope);
+        //this.currentScope = new LocalScope(this.currentScope);
         //TODO deal with method types (ie resolve etc etc)
         n.setEnclosingScope(this.currentScope);
         
@@ -900,7 +905,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         }
         
 		// pop the scope to the enclosing scope 
-		currentScope = currentScope.getEnclosingScope();
+		//currentScope = currentScope.getEnclosingScope();
     }
 
     public void visit(Parameter n, Object arg) {
@@ -1047,6 +1052,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         printer.print("}");
         
         //TODO maybe?
+        // pop the scope to the enclosing scope 
         this.currentScope = this.currentScope.getEnclosingScope();
 
     }

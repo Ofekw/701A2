@@ -2,14 +2,14 @@ package tests;
 
 public class Test3 {
 
-	int a = 1;  
-	int a = 1; 		// ERROR, already defined
-	int b = "";		// ERROR, incompatible types
-	int c = d; 		// ERROR, not defined
+	  int a = 1;  
+	//int a = 1; 		// ERROR, already defined
+	//int b = "";		// ERROR, incompatible types
+	//int c = d; 		// ERROR, not defined
 	
-	class Dog {}
 	
 	public void foo(boolean x) {
+	int qq = getInt("String");
 	 //  Dog d = new Dog();
 		int e = 1;
 	//	int e = 1; 		// ERROR, already defined
@@ -19,4 +19,10 @@ public class Test3 {
 		int h = i;	// ERROR, not defined
 	//	int j = Dog; // ERROR , invalid
 	}
+	
+	public int getInt(int i){
+		return i;
+	}
+	
+		class Dog {}
 }

@@ -111,6 +111,7 @@ import japa.parser.ast.type.VoidType;
 import japa.parser.ast.type.WildcardType;
 import se701.A2SemanticsException;
 import symtab.ClassSymbol;
+import symtab.MethodSymbol;
 import symtab.Scope;
 import symtab.Symbol;
 import symtab.VariableSymbol;
@@ -724,19 +725,36 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
             n.getScope().accept(this, arg);
             printer.print(".");
         }
-        printTypeArgs(n.getTypeArgs(), arg);
-        printer.print(n.getName());
-        printer.print("(");
-        if (n.getArgs() != null) {
-            for (Iterator<Expression> i = n.getArgs().iterator(); i.hasNext();) {
-                Expression e = i.next();
-                e.accept(this, arg);
-                if (i.hasNext()) {
-                    printer.print(", ");
-                }
-            }
+        
+        Scope scope = n.getEnclosingScope();
+        MethodSymbol sym = (MethodSymbol)scope.resolve(n.getName());
+        
+        List<Expression> args = n.getArgs();
+        List<Parameter> params = sym.getMethodParameter();
+        for (int i = 0; i < n.getArgs().size(); i++){
+        	Symbol parameter = scope.resolve(params.get(i).getId().getName());
+        	symtab.Type paramaterType = parameter.getType();
+        	Expression argVal = args.get(i);
+        	symtab.Type argType = getTypeOfExpression(argVal, scope);
+        	if (argType.getName() != paramaterType.getName()){
+        		throw new A2SemanticsException(argVal.toString() + "of type" + argType.getName() + " on line " + n.getBeginLine() + " does not match the "+ n.getName() +" method parameter of type" + paramaterType.getName() );
+        	}
+        	
         }
-        printer.print(")");
+        
+//        printTypeArgs(n.getTypeArgs(), arg);
+//        printer.print(n.getName());
+//        printer.print("(");
+//        if (n.getArgs() != null) {
+//            for (Iterator<Expression> i = n.getArgs().iterator(); i.hasNext();) {
+//                Expression e = i.next();
+//                e.accept(this, arg);
+//                if (i.hasNext()) {
+//                    printer.print(", ");
+//                }
+//            }
+//        }
+//        printer.print(")");
     }
 
     public void visit(ObjectCreationExpr n, Object arg) {
@@ -951,7 +969,8 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     	for (Iterator<VariableDeclarator> i = n.getVars().iterator(); i.hasNext();) {
     		VariableDeclarator v = i.next();
     		
-        	symtab.Type typeOfRight = getTypeOfExpression(v.getInit(), scope);
+    		Expression init = v.getInit();
+        	symtab.Type typeOfRight = getTypeOfExpression(init, scope);
         	if(typeOfRight == null){
         		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
         	}
@@ -1002,6 +1021,11 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
 				sym = scope.resolve("boolean");
 			}else if (init.getClass() == StringLiteralExpr.class){
 				sym = scope.resolve("String");
+			}else if (init.getClass() == MethodCallExpr.class){
+				// for each get argument type, deal with mutiple method paramterss, get type by using methodSym
+				sym = scope.resolve(((MethodCallExpr) init).getName());
+//				MethodSymbol methodSymbol = (MethodSymbol)sym;
+				
 			}
 			//TODO other primitive types (and others?)
 			else{
