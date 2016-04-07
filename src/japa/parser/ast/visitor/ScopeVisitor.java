@@ -803,6 +803,12 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         if (n.getJavaDoc() != null) {
             n.getJavaDoc().accept(this, arg);
         }
+        String varName = n.getName().toString();
+        MethodSymbol symbol = new MethodSymbol(varName, null, this.currentScope, n.getParameters());
+        this.currentScope.define(symbol);
+        n.setEnclosingScope(this.currentScope);
+        this.currentScope = symbol;
+        
         printMemberAnnotations(n.getAnnotations(), arg);
         printModifiers(n.getModifiers());
 
@@ -836,6 +842,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         }
         printer.print(" ");
         n.getBlock().accept(this, arg);
+        this.currentScope = this.currentScope.getEnclosingScope();
     }
 
     public void visit(MethodDeclaration n, Object arg) {
@@ -845,7 +852,12 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         
         //this.currentScope = new LocalScope(this.currentScope);
         //TODO deal with method types (ie resolve etc etc)
+        
+        String varName = n.getName().toString();
+        MethodSymbol symbol = new MethodSymbol(varName, null, this.currentScope, n.getParameters());
+        this.currentScope.define(symbol);
         n.setEnclosingScope(this.currentScope);
+        this.currentScope = symbol;
         
         
         System.err.println();
@@ -892,10 +904,12 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         } else {
             printer.print(" ");
             n.getBody().accept(this, arg);
+            n.getBody().setParams(n.getParameters());
+            n.getBody().accept(this, arg);
         }
         
 		// pop the scope to the enclosing scope 
-		//currentScope = currentScope.getEnclosingScope();
+		currentScope = currentScope.getEnclosingScope();
     }
 
     public void visit(Parameter n, Object arg) {
@@ -943,16 +957,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         n.getType().accept(this, arg);
         n.setEnclosingScope(this.currentScope);
         //TODO
-//        this.currentScope = new LocalScope(currentScope);
-        
-//        Symbol symOfVariable = currentScope.resolve(n.getType().toString());
-//        if(symOfVariable == null){
-//        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-//        }
-//        if(!(symOfVariable instanceof symtab.Type)){
-//        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
-//        }
-//        
+
         printer.print(" ");
 
         for (Iterator<VariableDeclarator> i = n.getVars().iterator(); i.hasNext();) {
@@ -961,57 +966,8 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
             if (i.hasNext()) {
                 printer.print(", ");
             }
-//            Symbol variable = this.currentScope.resolve(v.getId().toString());
-//            if(variable != null){
-//            	throw new A2SemanticsException(v.getId().toString() + " on line " + v.getId().getBeginLine() + " is already defined. Try another variable name.");
-//            }
-//            
-//            symtab.Type typeOfLeft = (symtab.Type)symOfVariable;
-//            symtab.Type typeOfRight = getTypeOfExpression(v.getInit());
-//            if(typeOfRight == null){
-//            	//TODO throw exception
-//            }
-//            if(typeOfRight != typeOfLeft){
-//            	throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getType().getBeginLine());
-//            }
-//            
-//            VariableSymbol varSym = new VariableSymbol(v.getId().getName(), (symtab.Type)symOfVariable );
-//            this.currentScope.define(varSym);
         }
     }
-
-//    private symtab.Type getTypeOfExpression(Expression init) {
-//    	symtab.Type type = null;
-//    	if(init != null){
-//    		Symbol sym = null;
-//    		if(init.getClass() == NameExpr.class){
-//    			sym = this.currentScope.resolve(init.toString());
-//    			if(sym == null){
-//    				throw new A2SemanticsException(init + " is not defined on line " + init.getBeginLine());
-//    			}
-//    			if(!(sym.getType() instanceof symtab.Type)){
-//    				throw new A2SemanticsException(init + " is not valid on line " + init.getBeginLine());
-//    			}
-//    			type = sym.getType();
-//    		}else{
-//    			//NOTE: IntegerLiteralExpr extends StringLiteralExpr, so must check IntegerLiteralExpr first
-//    			if(init.getClass() == IntegerLiteralExpr.class){
-//    				sym = this.currentScope.resolveForAll("int");
-//    			}else if (init.getClass() == StringLiteralExpr.class){
-//    				sym = this.currentScope.resolveForAll("String");
-//    			}
-//    			//TODO other primitive types (and others?)
-//    			else{
-//    				System.out.println("Add " + init.getClass() + " to getTypeofExpression helper method");
-//    			}
-//    			type = (symtab.Type)sym; 
-//    		}
-//    	}
-//		if(type == null){
-//			throw new A2SemanticsException(init + " is not defined on line " + init.getBeginLine());
-//		}
-//		return type;
-//	}
 
 	public void visit(TypeDeclarationStmt n, Object arg) {
         n.getTypeDeclaration().accept(this, arg);

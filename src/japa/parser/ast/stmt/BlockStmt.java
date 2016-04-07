@@ -21,6 +21,7 @@
  */
 package japa.parser.ast.stmt;
 
+import japa.parser.ast.body.Parameter;
 import japa.parser.ast.visitor.GenericVisitor;
 import japa.parser.ast.visitor.VoidVisitor;
 
@@ -32,6 +33,7 @@ import java.util.List;
 public final class BlockStmt extends Statement {
 
     private final List<Statement> stmts;
+    private List<Parameter> params;
 
     public BlockStmt(int beginLine, int beginColumn, int endLine, int endColumn, List<Statement> stmts) {
         super(beginLine, beginColumn, endLine, endColumn);
@@ -51,4 +53,12 @@ public final class BlockStmt extends Statement {
     public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
         return v.visit(this, arg);
     }
+
+	public List<Parameter> getParams() {
+		return params;
+	}
+
+	public void setParams(List<Parameter> params) {
+		this.params = params;
+	}
 }

@@ -81,6 +81,12 @@ public class BaseScope implements Scope  {
 		this.enclosingScope = scope;
 	}
 
+	@Override
+	public Symbol resolveLocal(String name) {
+		Symbol s = symbols.get(name);
+			return s;
+	}
+
 
 
 }

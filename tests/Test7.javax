@@ -1,0 +1,8 @@
+package tests;
+
+public class Test7 {
+
+	  Dog a = "a string"; // incompatible types
+	
+		class Dog {}
+}

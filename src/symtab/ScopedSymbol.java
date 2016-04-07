@@ -57,5 +57,11 @@ public class ScopedSymbol extends Symbol implements Scope {
 		return this.yieldBlocks.get(methodName);
 	}
 
+	@Override
+	public Symbol resolveLocal(String name) {
+		Symbol s = symbols.get(name);
+			return s;
+	}
+
 
 }

@@ -2,7 +2,7 @@ public class Test1 {
 	int a;
 	
 	public void foo(boolean x) {
-	String c = "test";
+		String c = "test";
 		a = c;  // ERROR: incompatible types
 		
 		//break;

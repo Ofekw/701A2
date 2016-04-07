@@ -1,0 +1,16 @@
+package tests;
+
+public class Test6 {
+
+	public void main(){
+		String a = "this is a string";
+		test(1,a,true);
+		test(a,a,true); // non matchting params
+	
+	}
+
+	public void test(int a, String b, boolean c){
+		return;
+	}
+
+}

@@ -1,0 +1,19 @@
+package tests;
+
+public class Test4 {
+
+	  int a = 1;  
+	
+	
+	public void foo(boolean x) {
+		int qq = getInt(2);
+		boolean bool = x;
+		qq = x; // incompatible types
+	}
+	
+	public int getInt(int i){
+		return i;
+	}
+	
+		class Dog {}
+}

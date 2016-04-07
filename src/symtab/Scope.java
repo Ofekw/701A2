@@ -11,4 +11,5 @@ public interface Scope {
 	public void defineYield(String methodName, Statement stmt);
 	public Statement resolveYield(String methodName);
 	public Symbol resolve(String name);
+	public Symbol resolveLocal(String name);
 }

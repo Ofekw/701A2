@@ -31,4 +31,8 @@ public class MethodSymbol extends ScopedSymbol {
 	public List<Parameter> getMethodParameter() {
 		return methodParameter;
 	}
+	
+	public void setType(Type type){
+		this.type = type;
+	}
 }

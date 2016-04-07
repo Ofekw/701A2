@@ -421,9 +421,23 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
 
         printer.print(" ");
         //TODO
+        Scope scope = n.getEnclosingScope();
+        String varType = n.getType().toString();
         for (Iterator<VariableDeclarator> i = n.getVariables().iterator(); i.hasNext();) {
             VariableDeclarator v = i.next();
             v.accept(this, arg);
+
+        	symtab.Type typeOfLeft = scope.resolve(varType).getType();
+
+        	if (v.getInit() != null){
+        	symtab.Type typeOfRight = getTypeOfExpression(v.getInit(), scope);
+	        	if(typeOfRight == null){
+	        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
+	        	}
+	        	if(typeOfRight.getName() != typeOfLeft.getName() && typeOfRight.getName() != "null"){
+	        		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getType().getBeginLine());
+	        	}
+        	}
           
             if (i.hasNext()) {
                 printer.print(", ");
@@ -736,12 +750,12 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
         List<Parameter> params = sym.getMethodParameter();
         if (args != null && params != null && args.size() > 0 && params.size() > 0){
 	        for (int i = 0; i < n.getArgs().size(); i++){
-	        	Symbol parameter = scope.resolve(params.get(i).getId().getName());
+	        	Symbol parameter = sym.resolve(params.get(i).getId().getName());
 	        	symtab.Type paramaterType = parameter.getType();
 	        	Expression argVal = args.get(i);
 	        	symtab.Type argType = getTypeOfExpression(argVal, scope);
 	        	if (argType.getName() != paramaterType.getName()){
-	        		throw new A2SemanticsException(argVal.toString() + "of type" + argType.getName() + " on line " + n.getBeginLine() + " does not match the "+ n.getName() +" method parameter of type" + paramaterType.getName() );
+	        		throw new A2SemanticsException(argVal.toString() + " of type " + argType.getName() + " on line " + n.getBeginLine() + " does not match the "+ n.getName() +" method parameter of type " + paramaterType.getName() );
 	        	}
 	        	
 	        }
@@ -1030,6 +1044,8 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
 				sym = scope.resolve("boolean");
 			}else if (init.getClass() == StringLiteralExpr.class){
 				sym = scope.resolve("String");
+			}else if (init.getClass() == NullLiteralExpr.class){
+				sym = scope.resolve("null");
 			}else if (init.getClass() == MethodCallExpr.class){
 				// for each get argument type, deal with mutiple method paramterss, get type by using methodSym
 				sym = scope.resolve(((MethodCallExpr) init).getName());

@@ -1,0 +1,30 @@
+package tests;
+
+import java.util.HashMap;
+
+public class ScopedSymbol{
+	
+	protected Scope enclosingScope = null;
+	private Symbol symbols = new Symbol();
+
+	public ScopedSymbol(String name, Type type, Scope scope) {
+		enclosingScope = scope;
+	}
+
+
+	@Override
+	public Scope getEnclosingScope() {
+		return this.enclosingScope;
+	}
+
+	@Override
+	public void define(Symbol symbol) {
+		//String name = symbol;
+		symbols = symbol;
+	}
+
+	class Scope {}
+	class Symbol {}
+	class Type {}
+}
+

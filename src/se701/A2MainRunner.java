@@ -12,21 +12,21 @@ public class A2MainRunner {
 		/*
 		 * These tests will be testing correctness of your Semantic Analysis visitors. The marker will be using their own files here. 
 		 */
-//		for (int i = 3; i <= 3; i++) { 
-//			String file = "tests"+System.getProperty("file.separator")+"Test"+i+".javax";
-//			try {
-//				A2Compiler.compile(new File(file));
-//				System.out.println(file+" ... OK");
-//			} catch (ParseException e) {
-//				System.err.println(file+" Parser exception... "+e.getMessage());
-//				e.printStackTrace();
-//			} catch (A2SemanticsException e) {
-//				System.err.println(file+" Semantics exception... "+e.getMessage());
-//				e.printStackTrace();
-//			}  catch (FileNotFoundException e) {
-//				e.printStackTrace();
-//			}
-//		}
+		for (int i = 1; i <=8; i++) { 
+			String file = "tests"+System.getProperty("file.separator")+"Test"+i+".javax";
+			try {
+				A2Compiler.compile(new File(file));
+				System.out.println(file+" ... OK");
+			} catch (ParseException e) {
+				System.err.println(file+" Parser exception... "+e.getMessage());
+				e.printStackTrace();
+			} catch (A2SemanticsException e) {
+				System.err.println(file+" Semantics exception... "+e.getMessage());
+				e.printStackTrace();
+			}  catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 		
 
 		/*

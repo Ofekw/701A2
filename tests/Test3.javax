@@ -3,21 +3,16 @@ package tests;
 public class Test3 {
 
 	  int a = 1;  
-	//int a = 1; 		// ERROR, already defined
-	//int b = "";		// ERROR, incompatible types
-	//int c = d; 		// ERROR, not defined
+
 	
 	
 	public void foo(boolean x) {
-	int qq = getInt("String");
-	 //  Dog d = new Dog();
+		
+	  	Dog d = new Dog();
 		int e = 1;
-	//	int e = 1; 		// ERROR, already defined
-	//	int f = "";		// ERROR, incompatible type
 		int g = e; 		
 		int field = a;
-		int h = i;	// ERROR, not defined
-	//	int j = Dog; // ERROR , invalid
+		int qq = getInt("String"); //param do match
 	}
 	
 	public int getInt(int i){

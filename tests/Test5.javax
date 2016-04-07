@@ -1,0 +1,9 @@
+package tests;
+
+public class Test5 {
+
+	  Dog a = new Dog();  
+	  Dog c = new Cats(); 		// ERROR, not defined type
+	
+		class Dog {}
+}
