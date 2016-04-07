@@ -2464,12 +2464,12 @@ Statement StatementYeild(String name):
 
 YieldStmt YieldStatement(String name):
 {
-	String id = null;
+	String id = name;
 	int line;
 	int column;
 }
 {
-  "yield" {line=token.beginLine; column=token.beginColumn;} [ <IDENTIFIER> { id = name; } ] ";"
+  "yield" {line=token.beginLine; column=token.beginColumn;} [ <IDENTIFIER> { id = "Test1"; } ] ";"
   { return new YieldStmt(line, column, id); }
   
 }

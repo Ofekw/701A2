@@ -773,7 +773,7 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     public void visit(MethodCallExpr n, Object arg) {
     	Statement yield = n.getYieldBlock();
     	if (yield != null){
-    		n.getEnclosingScope().defineYield(n.getName(), yield);
+    		n.getEnclosingScope().getEnclosingScope().defineYield(n.getName(), yield);
     	}
         if (n.getScope() != null) {
             n.getScope().accept(this, arg);

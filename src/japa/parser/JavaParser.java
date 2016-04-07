@@ -3092,7 +3092,7 @@ public final class JavaParser implements JavaParserConstants {
   }
 
   final public YieldStmt YieldStatement(String name) throws ParseException {
-        String id = null;
+        String id = name;
         int line;
         int column;
     jj_consume_token(YIELD);
@@ -3100,7 +3100,7 @@ public final class JavaParser implements JavaParserConstants {
     switch (jj_nt.kind) {
     case IDENTIFIER:
       jj_consume_token(IDENTIFIER);
-                                                                             id = name;
+                                                                             id = "Test1";
       break;
     default:
       jj_la1[108] = jj_gen;

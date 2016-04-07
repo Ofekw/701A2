@@ -120,6 +120,8 @@ import symtab.VariableSymbol;
 import java.util.Iterator;
 import java.util.List;
 
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodType;
+
 /**
  * @author Julio Vilmar Gesser
  */
@@ -1422,8 +1424,6 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
 
 	@Override
 	public void visit(YieldStmt n, Object arg) {
-		// TODO Auto-generated method stub
-		n.getId();
-		
+		//TODO
 	}
 }

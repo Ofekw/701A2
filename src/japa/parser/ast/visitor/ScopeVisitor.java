@@ -290,6 +290,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         ClassSymbol sym = new ClassSymbol(n.getName(), this.currentScope);
         this.currentScope.define(sym);
         //TODO Look at modifiers and parents
+        this.currentScope = sym;
 
         printTypeParameters(n.getTypeParameters(), arg);
 
@@ -309,7 +310,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
                 c.accept(this, arg);
             }
         }
-        this.currentScope = sym.getEnclosingScope();
+        
 
         printer.printLn(" {");
         printer.indent();
@@ -318,6 +319,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         }
         printer.unindent();
         printer.print("}");
+        this.currentScope = sym.getEnclosingScope();
     }
 
     public void visit(EmptyTypeDeclaration n, Object arg) {

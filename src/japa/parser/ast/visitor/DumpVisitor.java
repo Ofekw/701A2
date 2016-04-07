@@ -110,6 +110,10 @@ import japa.parser.ast.type.ReferenceType;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.type.VoidType;
 import japa.parser.ast.type.WildcardType;
+import se701.A2SemanticsException;
+import symtab.MethodSymbol;
+import symtab.Scope;
+import symtab.Symbol;
 
 import java.util.Iterator;
 import java.util.List;
@@ -1301,7 +1305,14 @@ public final class DumpVisitor implements VoidVisitor<Object> {
 
 	@Override
 	public void visit(YieldStmt n, Object arg) {
-		// TODO Auto-generated method stub
-		
+		String methodName = n.getId();
+		Scope scope = n.getEnclosingScope().getEnclosingScope();
+		Symbol sym = scope.resolve(methodName);
+		if (!(sym instanceof MethodSymbol)){
+			throw new A2SemanticsException(methodName + "stashed in node and resolved as a " + sym.getType().toString() + "type instead MethodSymbol");
+		}
+		printer.indent();
+		printer.printLn(scope.resolveYield(methodName).toString());
+		printer.unindent();
 	}
 }

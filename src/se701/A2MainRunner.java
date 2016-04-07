@@ -34,7 +34,7 @@ public class A2MainRunner {
 		 * file which is associated to your selected feature. 		 
 		 */
 		try {
-			A2Compiler.compile(new File("src"+System.getProperty("file.separator")+"se701"+System.getProperty("file.separator")+"StudentSample_yield.javax"));
+			A2Compiler.compile(new File("src"+System.getProperty("file.separator")+"se701"+System.getProperty("file.separator")+"StudentSample.javax"));
 			System.out.println("src/se701.StudentSample compiled correctly");
 		} catch (ParseException e) {
 			System.err.println("Sample file should not have any errors! ");
