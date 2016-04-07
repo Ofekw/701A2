@@ -21,6 +21,7 @@
  */
 package japa.parser.ast.expr;
 
+import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.GenericVisitor;
 import japa.parser.ast.visitor.VoidVisitor;
@@ -39,13 +40,16 @@ public final class MethodCallExpr extends Expression {
     private final String name;
 
     private final List<Expression> args;
+    
+    private final Statement yieldBlock;
 
-    public MethodCallExpr(int line, int column, Expression scope, List<Type> typeArgs, String name, List<Expression> args) {
+    public MethodCallExpr(int line, int column, Expression scope, List<Type> typeArgs, String name, List<Expression> args, Statement stmt) {
         super(line, column);
         this.scope = scope;
         this.typeArgs = typeArgs;
         this.name = name;
         this.args = args;
+        this.yieldBlock = stmt;
     }
 
     public Expression getScope() {
@@ -73,5 +77,9 @@ public final class MethodCallExpr extends Expression {
     public <R, A> R accept(GenericVisitor<R, A> v, A arg) {
         return v.visit(this, arg);
     }
+
+	public Statement getYieldBlock() {
+		return yieldBlock;
+	}
 
 }

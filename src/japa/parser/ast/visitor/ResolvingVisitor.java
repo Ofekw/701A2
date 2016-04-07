@@ -103,6 +103,7 @@ import japa.parser.ast.stmt.ThrowStmt;
 import japa.parser.ast.stmt.TryStmt;
 import japa.parser.ast.stmt.TypeDeclarationStmt;
 import japa.parser.ast.stmt.WhileStmt;
+import japa.parser.ast.stmt.YieldStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.PrimitiveType;
 import japa.parser.ast.type.ReferenceType;
@@ -731,30 +732,36 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
         
         List<Expression> args = n.getArgs();
         List<Parameter> params = sym.getMethodParameter();
-        for (int i = 0; i < n.getArgs().size(); i++){
-        	Symbol parameter = scope.resolve(params.get(i).getId().getName());
-        	symtab.Type paramaterType = parameter.getType();
-        	Expression argVal = args.get(i);
-        	symtab.Type argType = getTypeOfExpression(argVal, scope);
-        	if (argType.getName() != paramaterType.getName()){
-        		throw new A2SemanticsException(argVal.toString() + "of type" + argType.getName() + " on line " + n.getBeginLine() + " does not match the "+ n.getName() +" method parameter of type" + paramaterType.getName() );
-        	}
-        	
+        if (args != null && params != null && args.size() > 0 && params.size() > 0){
+	        for (int i = 0; i < n.getArgs().size(); i++){
+	        	Symbol parameter = scope.resolve(params.get(i).getId().getName());
+	        	symtab.Type paramaterType = parameter.getType();
+	        	Expression argVal = args.get(i);
+	        	symtab.Type argType = getTypeOfExpression(argVal, scope);
+	        	if (argType.getName() != paramaterType.getName()){
+	        		throw new A2SemanticsException(argVal.toString() + "of type" + argType.getName() + " on line " + n.getBeginLine() + " does not match the "+ n.getName() +" method parameter of type" + paramaterType.getName() );
+	        	}
+	        	
+	        }
+        }else if (args == null && params != null){
+    		throw new A2SemanticsException(n.getName()+ " on line " + n.getBeginLine() + " does not have parameters in the method signature");
+        }else if (args != null && params == null){
+        	throw new A2SemanticsException(n.getName()+ " on line " + n.getBeginLine() + " has parameters in the method signature which where not assigned");
         }
         
-//        printTypeArgs(n.getTypeArgs(), arg);
-//        printer.print(n.getName());
-//        printer.print("(");
-//        if (n.getArgs() != null) {
-//            for (Iterator<Expression> i = n.getArgs().iterator(); i.hasNext();) {
-//                Expression e = i.next();
-//                e.accept(this, arg);
-//                if (i.hasNext()) {
-//                    printer.print(", ");
-//                }
-//            }
-//        }
-//        printer.print(")");
+        printTypeArgs(n.getTypeArgs(), arg);
+        printer.print(n.getName());
+        printer.print("(");
+        if (n.getArgs() != null) {
+            for (Iterator<Expression> i = n.getArgs().iterator(); i.hasNext();) {
+                Expression e = i.next();
+                e.accept(this, arg);
+                if (i.hasNext()) {
+                    printer.print(", ");
+                }
+            }
+        }
+        printer.print(")");
     }
 
     public void visit(ObjectCreationExpr n, Object arg) {
@@ -1412,4 +1419,11 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
         printer.print(n.getContent());
         printer.printLn("*/");
     }
+
+	@Override
+	public void visit(YieldStmt n, Object arg) {
+		// TODO Auto-generated method stub
+		n.getId();
+		
+	}
 }

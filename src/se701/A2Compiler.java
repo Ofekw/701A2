@@ -39,11 +39,16 @@ public class A2Compiler {
 		ResolvingVisitor resolvingV = new ResolvingVisitor();
 		ast.accept(resolvingV, null);
 		
+		//Runner to identify yield methods
 		
+		// Visitor to identify yield content
+		
+		// Method to inject yield data
 		
 		// perform visit N 
 		DumpVisitor printVisitor = new DumpVisitor();
 		ast.accept(printVisitor, null);
+		
 		
 		String result = printVisitor.getSource();
 		

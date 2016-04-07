@@ -103,6 +103,7 @@ import japa.parser.ast.stmt.ThrowStmt;
 import japa.parser.ast.stmt.TryStmt;
 import japa.parser.ast.stmt.TypeDeclarationStmt;
 import japa.parser.ast.stmt.WhileStmt;
+import japa.parser.ast.stmt.YieldStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.PrimitiveType;
 import japa.parser.ast.type.ReferenceType;
@@ -770,21 +771,13 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(MethodCallExpr n, Object arg) {
+    	Statement yield = n.getYieldBlock();
+    	if (yield != null){
+    		n.getEnclosingScope().defineYield(n.getName(), yield);
+    	}
         if (n.getScope() != null) {
             n.getScope().accept(this, arg);
-//            printer.print(".");
         }
-//        printTypeArgs(n.getTypeArgs(), arg);
-//        printer.print(n.getName());
-//        printer.print("(");
-//        if (n.getArgs() != null) {
-//            for (Iterator<Expression> i = n.getArgs().iterator(); i.hasNext();) {
-//                Expression e = i.next();
-////                e.accept(this, arg);
-//                }
-//            }
-//        }
-//        printer.print(")");
     }
 
     public void visit(ObjectCreationExpr n, Object arg) {
@@ -1460,4 +1453,11 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
         printer.print(n.getContent());
         printer.printLn("*/");
     }
+
+	@Override
+	public void visit(YieldStmt n, Object arg) {
+		Scope scope = n.getEnclosingScope();
+		
+		
+	}
 }

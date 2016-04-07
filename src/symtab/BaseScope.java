@@ -2,11 +2,16 @@ package symtab;
 
 import java.util.HashMap;
 
+import japa.parser.ast.stmt.Statement;
+
 
 public class BaseScope implements Scope  {
 	
 	private Scope enclosingScope;
+	// Key: Name; Value: Symbol
 	private HashMap<String,Symbol> symbols = new HashMap<String,Symbol>();
+	//Key: Method Name; Value: YieldBlock
+	private HashMap<String,Statement> yieldBlocks = new HashMap<String,Statement>(); 
 
 
 	public BaseScope(){
@@ -25,6 +30,9 @@ public class BaseScope implements Scope  {
 		define(new BuiltInTypeSymbol("void"));
 		
 		define(new ClassSymbol("String"));
+		define(new MethodSymbol("println", null));
+		
+		
 	}
 	
 	public String getScopeName() {
@@ -33,6 +41,16 @@ public class BaseScope implements Scope  {
 
 	public void define(Symbol symbol) {
 		symbols.put(symbol.getName(), symbol);
+	}
+	
+	@Override
+	public void defineYield(String methodName, Statement stmt){
+		this.yieldBlocks.put(methodName, stmt );
+	}
+	
+	@Override
+	public Statement resolveYield(String methodName) {
+		return this.yieldBlocks.get(methodName);
 	}
 
 	public Symbol resolve(String name) {
@@ -62,5 +80,7 @@ public class BaseScope implements Scope  {
 	public void setEnclosingScope(Scope scope){
 		this.enclosingScope = scope;
 	}
+
+
 
 }

@@ -103,6 +103,7 @@ import japa.parser.ast.stmt.ThrowStmt;
 import japa.parser.ast.stmt.TryStmt;
 import japa.parser.ast.stmt.TypeDeclarationStmt;
 import japa.parser.ast.stmt.WhileStmt;
+import japa.parser.ast.stmt.YieldStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.PrimitiveType;
 import japa.parser.ast.type.ReferenceType;
@@ -284,19 +285,10 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         if (n.getJavaDoc() != null) {
             n.getJavaDoc().accept(this, arg);
         }
-        printMemberAnnotations(n.getAnnotations(), arg);
-        printModifiers(n.getModifiers());
-
-        if (n.isInterface()) {
-            printer.print("interface ");
-        } else {
-            printer.print("class ");
-        }
-
-        printer.print(n.getName());
         //TODO
         n.setEnclosingScope(currentScope);
-        this.currentScope.define(new ClassSymbol(n.getName()));
+        ClassSymbol sym = new ClassSymbol(n.getName(), this.currentScope);
+        this.currentScope.define(sym);
         //TODO Look at modifiers and parents
 
         printTypeParameters(n.getTypeParameters(), arg);
@@ -307,21 +299,17 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
                 ClassOrInterfaceType c = i.next();
                 c.accept(this, arg);
                 if (i.hasNext()) {
-                    printer.print(", ");
                 }
             }
         }
 
         if (n.getImplements() != null) {
-            printer.print(" implements ");
             for (Iterator<ClassOrInterfaceType> i = n.getImplements().iterator(); i.hasNext();) {
                 ClassOrInterfaceType c = i.next();
                 c.accept(this, arg);
-                if (i.hasNext()) {
-                    printer.print(", ");
-                }
             }
         }
+        this.currentScope = sym.getEnclosingScope();
 
         printer.printLn(" {");
         printer.indent();
@@ -1401,4 +1389,10 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
         printer.print(n.getContent());
         printer.printLn("*/");
     }
+
+	@Override
+	public void visit(YieldStmt n, Object arg) {
+		n.setEnclosingScope(currentScope);
+		
+	}
 }

@@ -1,10 +1,15 @@
 package symtab;
 
 import java.util.HashMap;
+
+import japa.parser.ast.stmt.Statement;
 public class ScopedSymbol extends Symbol implements Scope {
 	
-	private HashMap<String, Symbol> symbols = new HashMap<String, Symbol>();
 	protected Scope enclosingScope = null;
+	// Key: Name; Value: Symbol
+	private HashMap<String,Symbol> symbols = new HashMap<String,Symbol>();
+	//Key: Method Name; Value: YieldBlock
+	private HashMap<String,Statement> yieldBlocks = new HashMap<String,Statement>(); 
 
 	public ScopedSymbol(String name, Type type, Scope enclosingScope) {
 		super(name, type);
@@ -41,5 +46,16 @@ public class ScopedSymbol extends Symbol implements Scope {
 				// otherwise it doesn't exist
 				return null;
 	}
+
+	@Override
+	public void defineYield(String methodName, Statement stmt){
+		this.yieldBlocks.put(methodName, stmt );
+	}
+	
+	@Override
+	public Statement resolveYield(String methodName) {
+		return this.yieldBlocks.get(methodName);
+	}
+
 
 }
