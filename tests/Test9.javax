@@ -1,0 +1,16 @@
+package tests;
+
+import java.util.HashMap;
+
+public class Test9{
+	
+	protected String s = "s";
+	private int symbols = 5;
+
+	public void(int x, int y){
+		if (s == x){
+		// should throw semantic type comparison error
+		} 	
+	}
+}
+
