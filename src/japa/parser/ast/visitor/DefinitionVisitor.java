@@ -438,15 +438,6 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
         		throw new A2SemanticsException(v.getId().toString() + " on line " + v.getId().getBeginLine() + " is already defined. Try another variable name.");
         	}
 
-//        	symtab.Type typeOfLeft = scope.resolve(varType).getType();
-//
-//        	symtab.Type typeOfRight = getTypeOfExpression(v.getInit(), scope);
-//        	if(typeOfRight == null){
-//        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-//        	}
-//        	if(typeOfRight.getName() != typeOfLeft.getName()){
-//        		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getType().getBeginLine());
-//        	}
         	symtab.Type type = scope.resolve(varType).getType();
         	Symbol symbol = new VariableSymbol(varName, type);
         	scope.define(symbol);

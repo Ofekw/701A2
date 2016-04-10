@@ -5,9 +5,11 @@ import java.util.HashMap;
 public class Test9{
 	
 	protected String s = "s";
-	private int symbols = 5;
 
-	public void(int x, int y){
+	public void main(int x, int y){
+		if (y == x){
+			//Success
+		} 	
 		if (s == x){
 		// should throw semantic type comparison error
 		} 	

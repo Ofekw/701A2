@@ -544,6 +544,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(BinaryExpr n, Object arg) {
+    	n.setEnclosingScope(this.currentScope);
         n.getLeft().accept(this, arg);
         printer.print(" ");
         switch (n.getOperator()) {

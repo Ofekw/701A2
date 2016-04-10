@@ -518,7 +518,12 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
         //TODO
         Scope scope = n.getEnclosingScope();
         String varName = n.getTarget().toString();
-        Symbol sym = scope.resolve(varName);
+        Symbol sym;
+        if (varName.contains(".")){
+        	sym = fieldAccessExpr(n, scope, varName);
+        }else{
+	        sym = scope.resolve(varName);
+        }
         if(sym == null){
         	throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + " is not a declared object");
         }
@@ -530,9 +535,6 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     	if(typeOfRight.getName() != typeOfLeft.getName()){
     		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getValue().getBeginLine());
     	}
-//TODO no need for this    	
-//        Symbol symbol = new VariableSymbol(varName, typeOfRight);
-//        scope.define(symbol);
         
         
         switch (n.getOperator()) {
@@ -577,8 +579,32 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
         n.getValue().accept(this, arg);
     }
 
+	private Symbol fieldAccessExpr(Expression n, Scope scope, String varName) {
+		Symbol sym;
+		String[] objectField = varName.split("\\.");
+		String variableName = objectField[0];
+		String fieldName = objectField[1];
+		Symbol variableSym = scope.resolve(variableName);
+		if(variableSym == null){
+			throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + " is not a declared object");
+		}
+		Symbol classSym = scope.resolve(variableSym.getType().getName());
+		if (!(classSym instanceof ClassSymbol)){
+			throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + " is not a class object with fields");
+		}
+		
+		sym = ((ClassSymbol)classSym).resolve(fieldName);
+		return sym;
+	}
+
     public void visit(BinaryExpr n, Object arg) {
         n.getLeft().accept(this, arg);
+        Scope scope = n.getEnclosingScope();
+        symtab.Type leftItem = getTypeOfExpression(n.getLeft(), scope);
+        symtab.Type rightItem = getTypeOfExpression(n.getRight(), scope);
+        if (leftItem.getName() != rightItem.getName()){
+        	throw new A2SemanticsException("Cannot compare from " + rightItem.getName() + " to " + leftItem.getName() + " on line " + n.getBeginLine());
+        }
         printer.print(" ");
         switch (n.getOperator()) {
             case or:
@@ -1049,11 +1075,11 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
 			}else if (init.getClass() == MethodCallExpr.class){
 				// for each get argument type, deal with mutiple method paramterss, get type by using methodSym
 				sym = scope.resolve(((MethodCallExpr) init).getName());
-//				MethodSymbol methodSymbol = (MethodSymbol)sym;
-				
-			}
+			}else if (init.getClass() == FieldAccessExpr.class){
+				// for each get argument type, deal with mutiple method paramterss, get type by using methodSym
+				sym = fieldAccessExpr(init, scope, init.toString());
 			//TODO other primitive types (and others?)
-			else{
+			}else{
 				System.out.println("Add " + init.getClass() + " to getTypeofExpression helper method");
 			}
 			type = sym.getType(); 

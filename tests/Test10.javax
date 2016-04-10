@@ -16,7 +16,8 @@ public class Test10 {
 	
 	void test(){
 		p.x = 23;
-		p.a = 1;
+		a = p.x;
+		p.a = "non compatible string";
 	}
 }
 
