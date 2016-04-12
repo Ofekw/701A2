@@ -111,6 +111,7 @@ import japa.parser.ast.type.Type;
 import japa.parser.ast.type.VoidType;
 import japa.parser.ast.type.WildcardType;
 import se701.A2SemanticsException;
+import symtab.ClassSymbol;
 import symtab.MethodSymbol;
 import symtab.Scope;
 import symtab.Symbol;
@@ -1306,7 +1307,11 @@ public final class DumpVisitor implements VoidVisitor<Object> {
 	@Override
 	public void visit(YieldStmt n, Object arg) {
 		String methodName = n.getId();
-		Scope scope = n.getEnclosingScope().getEnclosingScope();
+		Scope scope = n.getEnclosingScope();
+		while (!(scope instanceof ClassSymbol)){
+			// get class scope
+			scope = scope.getEnclosingScope();
+		}
 		Symbol sym = scope.resolve(methodName);
 		if (sym == null){
 			throw new A2SemanticsException(methodName + "is not in scope");
@@ -1315,7 +1320,7 @@ public final class DumpVisitor implements VoidVisitor<Object> {
 			throw new A2SemanticsException(methodName + "stashed in node and resolved as a " + sym.getType().toString() + "type instead MethodSymbol");
 		}
 		printer.indent();
-		printer.printLn(scope.resolveYield(methodName).toString());
+		printer.printLn(((MethodSymbol) sym).resolveYield(methodName).toString());
 		printer.unindent();
 	}
 }

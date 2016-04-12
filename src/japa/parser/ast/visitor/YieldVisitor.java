@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Júlio Vilmar Gesser.
+ * Copyright (C) 2007 Jï¿½lio Vilmar Gesser.
  * 
  * This file is part of Java 1.5 parser and Abstract Syntax Tree.
  *
@@ -111,7 +111,10 @@ import japa.parser.ast.type.Type;
 import japa.parser.ast.type.VoidType;
 import japa.parser.ast.type.WildcardType;
 import se701.A2SemanticsException;
+import symtab.BaseScope;
 import symtab.ClassSymbol;
+import symtab.GlobalScope;
+import symtab.LocalScope;
 import symtab.MethodSymbol;
 import symtab.Scope;
 import symtab.Symbol;
@@ -120,13 +123,8 @@ import symtab.VariableSymbol;
 import java.util.Iterator;
 import java.util.List;
 
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodType;
 
-/**
- * @author Julio Vilmar Gesser
- */
-
-public final class ResolvingVisitor implements VoidVisitor<Object> {
+public final class YieldVisitor implements VoidVisitor<Object> {
 
     private final SourcePrinter printer = new SourcePrinter();
 
@@ -412,42 +410,88 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(FieldDeclaration n, Object arg) {
+
         if (n.getJavaDoc() != null) {
             n.getJavaDoc().accept(this, arg);
         }
         printMemberAnnotations(n.getAnnotations(), arg);
         printModifiers(n.getModifiers());
         n.getType().accept(this, arg);
-
-        printer.print(" ");
         //TODO
+        
         Scope scope = n.getEnclosingScope();
         String varType = n.getType().toString();
+
+        printer.print(" ");
         for (Iterator<VariableDeclarator> i = n.getVariables().iterator(); i.hasNext();) {
-            VariableDeclarator v = i.next();
-            v.accept(this, arg);
-
-        	symtab.Type typeOfLeft = scope.resolve(varType).getType();
-
-        	if (v.getInit() != null){
-        	symtab.Type typeOfRight = getTypeOfExpression(v.getInit(), scope);
-	        	if(typeOfRight == null){
-	        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-	        	}
-	        	if(typeOfRight.getName() != typeOfLeft.getName() && typeOfRight.getName() != "null"){
-	        		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getType().getBeginLine());
-	        	}
+        	VariableDeclarator v = i.next();
+        	String varName = v.getId().toString();
+        	Symbol sym = scope.resolve(varType);
+        	if(sym == null){
+        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
         	}
-          
-            if (i.hasNext()) {
-                printer.print(", ");
-            }
+        	if(!(sym instanceof symtab.Type)){
+        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
+        	}
+        	Symbol variable = scope.resolve(varName);
+        	if(variable != null){
+        		throw new A2SemanticsException(v.getId().toString() + " on line " + v.getId().getBeginLine() + " is already defined. Try another variable name.");
+        	}
+
+        	symtab.Type type = scope.resolve(varType).getType();
+        	Symbol symbol = new VariableSymbol(varName, type);
+        	scope.define(symbol);
+        	v.accept(this, arg);
+        	if (i.hasNext()) {
+        		printer.print(", ");
+        	}
         }
 
         printer.print(";");
     }
-
+    
+    //TODO remove from here
+    private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
+    	symtab.Type type = null;
+    	if(init != null){
+    		Symbol sym = null;
+    		if(init.getClass() == NameExpr.class){
+    			sym = scope.resolve(init.toString());
+    			if(sym == null){
+    				throw new A2SemanticsException(init + " is not defined on line " + init.getBeginLine());
+    			}
+    			if(!(sym.getType() instanceof symtab.Type)){
+    				throw new A2SemanticsException(init + " is not valid on line " + init.getBeginLine());
+    			}
+    			type = sym.getType();
+    		}else{
+    			//NOTE: IntegerLiteralExpr extends StringLiteralExpr, so must check IntegerLiteralExpr first
+    			if(init.getClass() == IntegerLiteralExpr.class){
+    				sym = scope.resolve("int");
+    			}else if(init.getClass() == BooleanLiteralExpr.class){
+    				sym = scope.resolve("boolean");
+    			}else if (init.getClass() == StringLiteralExpr.class){
+    				sym = scope.resolve("String");
+    			}else if (init.getClass() == MethodCallExpr.class){
+    				// for each get argument type, deal with mutiple method paramterss, get type by using methodSym
+    				sym = scope.resolve(((MethodCallExpr) init).getName());
+    			}
+    			//TODO other primitive types (and others?)
+    			else{
+    				System.out.println("Add " + init.getClass() + " to getTypeofExpression helper method");
+    			}
+    			type = sym.getType(); 
+    		}
+    	}
+    	if(type == null){
+    		throw new A2SemanticsException(init + " is not defined on line " + init.getBeginLine());
+    	}
+    	return type;
+    }
+    
     public void visit(VariableDeclarator n, Object arg) {
+    	
+        
         n.getId().accept(this, arg);
         if (n.getInit() != null) {
             printer.print(" = ");
@@ -515,28 +559,6 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     public void visit(AssignExpr n, Object arg) {
         n.getTarget().accept(this, arg);
         printer.print(" ");
-        //TODO
-        Scope scope = n.getEnclosingScope();
-        String varName = n.getTarget().toString();
-        Symbol sym;
-        if (varName.contains(".")){
-        	sym = fieldAccessExpr(n, scope, varName);
-        }else{
-	        sym = scope.resolve(varName);
-        }
-        if(sym == null){
-        	throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + " is not a declared object");
-        }
-    	symtab.Type typeOfLeft = sym.getType();
-    	symtab.Type typeOfRight = getTypeOfExpression( n.getValue(), scope);
-    	if(typeOfRight == null){
-    		throw new A2SemanticsException( n.getValue().toString() + " on line " + n.getValue().getBeginLine() + " is not a defined type");
-    	}
-    	if(typeOfRight.getName() != typeOfLeft.getName()){
-    		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getValue().getBeginLine());
-    	}
-        
-        
         switch (n.getOperator()) {
             case assign:
                 printer.print("=");
@@ -579,32 +601,8 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
         n.getValue().accept(this, arg);
     }
 
-	private Symbol fieldAccessExpr(Expression n, Scope scope, String varName) {
-		Symbol sym;
-		String[] objectField = varName.split("\\.");
-		String variableName = objectField[0];
-		String fieldName = objectField[1];
-		Symbol variableSym = scope.resolve(variableName);
-		if(variableSym == null){
-			throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + " is not a declared object");
-		}
-		Symbol classSym = scope.resolve(variableSym.getType().getName());
-		if (!(classSym instanceof ClassSymbol)){
-			throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + " is not a class object with fields");
-		}
-		
-		sym = ((ClassSymbol)classSym).resolve(fieldName);
-		return sym;
-	}
-
     public void visit(BinaryExpr n, Object arg) {
         n.getLeft().accept(this, arg);
-        Scope scope = n.getEnclosingScope();
-        symtab.Type leftItem = getTypeOfExpression(n.getLeft(), scope);
-        symtab.Type rightItem = getTypeOfExpression(n.getRight(), scope);
-        if (leftItem.getName() != rightItem.getName()){
-        	throw new A2SemanticsException("Cannot compare from " + rightItem.getName() + " to " + leftItem.getName() + " on line " + n.getBeginLine());
-        }
         printer.print(" ");
         switch (n.getOperator()) {
             case or:
@@ -764,46 +762,25 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(MethodCallExpr n, Object arg) {
+    	Statement yield = n.getYieldBlock();
+    	if (yield != null){
+    		Scope scope = n.getEnclosingScope();
+    		MethodSymbol sym = (MethodSymbol)scope.resolve(n.getName());
+    		sym.defineYield(n.getName(), yield);
+    		
+    		while (!(scope instanceof ClassSymbol)){
+    			// get class scope
+    			scope = scope.getEnclosingScope();
+    		}
+    		scope = ((ClassSymbol)scope).getYieldScope(n.getName());
+    		Scope localScope = new LocalScope(scope);
+    		yield.setEnclosingScope(localScope);
+    	}
         if (n.getScope() != null) {
             n.getScope().accept(this, arg);
-            printer.print(".");
         }
         
-        Scope scope = n.getEnclosingScope();
-        MethodSymbol sym = (MethodSymbol)scope.resolve(n.getName());
-        
-        List<Expression> args = n.getArgs();
-        List<Parameter> params = sym.getMethodParameter();
-        if (args != null && params != null && args.size() > 0 && params.size() > 0){
-	        for (int i = 0; i < n.getArgs().size(); i++){
-	        	Symbol parameter = sym.resolve(params.get(i).getId().getName());
-	        	symtab.Type paramaterType = parameter.getType();
-	        	Expression argVal = args.get(i);
-	        	symtab.Type argType = getTypeOfExpression(argVal, scope);
-	        	if (argType.getName() != paramaterType.getName()){
-	        		throw new A2SemanticsException(argVal.toString() + " of type " + argType.getName() + " on line " + n.getBeginLine() + " does not match the "+ n.getName() +" method parameter of type " + paramaterType.getName() );
-	        	}
-	        	
-	        }
-        }else if (args == null && params != null){
-    		throw new A2SemanticsException(n.getName()+ " on line " + n.getBeginLine() + " does not have parameters in the method signature");
-        }else if (args != null && params == null){
-        	throw new A2SemanticsException(n.getName()+ " on line " + n.getBeginLine() + " has parameters in the method signature which where not assigned");
-        }
-        
-        printTypeArgs(n.getTypeArgs(), arg);
-        printer.print(n.getName());
-        printer.print("(");
-        if (n.getArgs() != null) {
-            for (Iterator<Expression> i = n.getArgs().iterator(); i.hasNext();) {
-                Expression e = i.next();
-                e.accept(this, arg);
-                if (i.hasNext()) {
-                    printer.print(", ");
-                }
-            }
-        }
-        printer.print(")");
+
     }
 
     public void visit(ObjectCreationExpr n, Object arg) {
@@ -917,9 +894,34 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(MethodDeclaration n, Object arg) {
+    	
+    	//TODO move scope here
         if (n.getJavaDoc() != null) {
             n.getJavaDoc().accept(this, arg);
         }
+        Scope scope = n.getEnclosingScope();
+        String varType = n.getType().toString();
+        String varName = n.getName().toString();
+        Symbol sym = scope.resolve(varType);
+        if(sym == null){
+        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
+        }
+        if(!(sym instanceof symtab.Type)){
+        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
+        }
+        symtab.Type type = scope.resolve(varType).getType();
+        Symbol methodSym = scope.resolve(varName);
+        if (!(methodSym instanceof MethodSymbol)){
+        	throw new A2SemanticsException(n.getName() + " on line " + n.getType().getBeginLine() + " is not a valid method symbol");
+        }
+        MethodSymbol existingMethodSymbol = (MethodSymbol)methodSym;
+        existingMethodSymbol.setType(type);
+//        Symbol symbol = new MethodSymbol(varName, type, scope, n.getParameters());
+        scope.define(existingMethodSymbol);
+        //TODO deal with method types (ie resolve etc etc)
+        
+        
+        System.err.println();
         printMemberAnnotations(n.getAnnotations(), arg);
         printModifiers(n.getModifiers());
 
@@ -927,12 +929,7 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
         if (n.getTypeParameters() != null) {
             printer.print(" ");
         }
-
-        n.getType().accept(this, arg);
-        printer.print(" ");
-        printer.print(n.getName());
-
-        printer.print("(");
+        
         if (n.getParameters() != null) {
             for (Iterator<Parameter> i = n.getParameters().iterator(); i.hasNext();) {
                 Parameter p = i.next();
@@ -942,7 +939,10 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
                 }
             }
         }
-        printer.print(")");
+
+        n.getType().accept(this, arg);
+        printer.print(" ");
+        printer.print(n.getName());
 
         for (int i = 0; i < n.getArrayCount(); i++) {
             printer.print("[]");
@@ -962,6 +962,7 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
             printer.print(";");
         } else {
             printer.print(" ");
+            n.getBody().setParams(n.getParameters());
             n.getBody().accept(this, arg);
         }
     }
@@ -969,7 +970,24 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     public void visit(Parameter n, Object arg) {
         printAnnotations(n.getAnnotations(), arg);
         printModifiers(n.getModifiers());
-
+        Scope scope = n.getEnclosingScope();
+        String varType = n.getType().toString();
+        String varName = n.getId().toString();
+        Symbol sym = scope.resolve(varType);
+      if(sym == null){
+      	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
+      }
+      if(!(sym instanceof symtab.Type)){
+      	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
+      }
+      	symtab.Type type = scope.resolve(varType).getType();
+        Symbol variable = scope.resolveLocal(varName);
+        if(variable != null){
+        	throw new A2SemanticsException(n.getId().toString() + " on line " + n.getId().getBeginLine() + " is already defined. Try another variable name.");
+        }
+        Symbol symbol = new VariableSymbol(varName, type);
+        scope.define(symbol);
+        //TODO: defines parameter variables for a scope
         n.getType().accept(this, arg);
         if (n.isVarArgs()) {
             printer.print("...");
@@ -1004,94 +1022,45 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(VariableDeclarationExpr n, Object arg) {
-    	printAnnotations(n.getAnnotations(), arg);
-    	printModifiers(n.getModifiers());
-
-    	n.getType().accept(this, arg);
-    	printer.print(" ");
-    	
-    	//TODO
+        printAnnotations(n.getAnnotations(), arg);
+        printModifiers(n.getModifiers());
+        n.getType().accept(this, arg);
         Scope scope = n.getEnclosingScope();
         String varType = n.getType().toString();
-    	symtab.Type typeOfLeft = scope.resolve(varType).getType();
-    	
-    	for (Iterator<VariableDeclarator> i = n.getVars().iterator(); i.hasNext();) {
-    		VariableDeclarator v = i.next();
-    		
-    		Expression init = v.getInit();
-        	symtab.Type typeOfRight = getTypeOfExpression(init, scope);
-        	if(typeOfRight == null){
-        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-        	}
-        	if(typeOfRight.getName() != typeOfLeft.getName()){
-        		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getType().getBeginLine());
-        	}
+        
+        Symbol sym = scope.resolve(varType);
+        if(sym == null){
+        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
+        }
+        if(!(sym instanceof symtab.Type)){
+        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
+        }
+        symtab.Type type = scope.resolve(varType).getType();
+        //TODO
+        printer.print(" ");
 
-    		v.accept(this, arg);
-    		if (i.hasNext()) {
-    			printer.print(", ");
-    		}
-    	}
+        for (Iterator<VariableDeclarator> i = n.getVars().iterator(); i.hasNext();) {
+            VariableDeclarator v = i.next();
+            v.setEnclosingScope(n.getEnclosingScope());
+            v.accept(this, arg);
+            if (i.hasNext()) {
+                printer.print(", ");
+            }
+        	String varName = v.getId().toString();
 
-
+            Symbol variable = scope.resolve(varName);
+            if(variable != null){
+            	throw new A2SemanticsException(v.getId().toString() + " on line " + v.getId().getBeginLine() + " is already defined. Try another variable name.");
+            }
+            
+            Symbol symbol = new VariableSymbol(varName, type);
+            scope.define(symbol);
+            
+        }
     }
 
-private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
-	symtab.Type type = null;
-	if(init != null){
-		Symbol sym = null;
-		if(init.getClass() == NameExpr.class){
-			sym = scope.resolve(init.toString());
-			if (sym instanceof ClassSymbol){
-				throw new A2SemanticsException(init + " is not valid instantiation on line " + init.getBeginLine() + ", use the 'new' keyword");
-			}
-			if(sym == null){
-				throw new A2SemanticsException(init + " is not defined on line " + init.getBeginLine());
-			}
-			if(!(sym.getType() instanceof symtab.Type)){
-				throw new A2SemanticsException(init + " is not valid on line " + init.getBeginLine());
-			}
-			type = sym.getType();
-		}else if(init.getClass() == ObjectCreationExpr.class){
-			ObjectCreationExpr obj = (ObjectCreationExpr)init;
-			sym = scope.resolve((obj.getType().toString()));
-			if(sym == null){
-				throw new A2SemanticsException(init + " is not defined on line " + init.getBeginLine());
-			}
-			if(!(sym.getType() instanceof symtab.Type)){
-				throw new A2SemanticsException(init + " is not valid on line " + init.getBeginLine());
-			}
-			type = sym.getType();
-		}else{
-			//NOTE: IntegerLiteralExpr extends StringLiteralExpr, so must check IntegerLiteralExpr first
-			if(init.getClass() == IntegerLiteralExpr.class){
-				sym = scope.resolve("int");
-			}else if(init.getClass() == BooleanLiteralExpr.class){
-				sym = scope.resolve("boolean");
-			}else if (init.getClass() == StringLiteralExpr.class){
-				sym = scope.resolve("String");
-			}else if (init.getClass() == NullLiteralExpr.class){
-				sym = scope.resolve("null");
-			}else if (init.getClass() == MethodCallExpr.class){
-				// for each get argument type, deal with mutiple method paramterss, get type by using methodSym
-				sym = scope.resolve(((MethodCallExpr) init).getName());
-			}else if (init.getClass() == FieldAccessExpr.class){
-				// for each get argument type, deal with mutiple method paramterss, get type by using methodSym
-				sym = fieldAccessExpr(init, scope, init.toString());
-			//TODO other primitive types (and others?)
-			}else{
-				System.out.println("Add " + init.getClass() + " to getTypeofExpression helper method");
-			}
-			type = sym.getType(); 
-		}
-	}
-	if(type == null){
-		throw new A2SemanticsException(init + " is not defined on line " + init.getBeginLine());
-	}
-	return type;
-}
 
-    public void visit(TypeDeclarationStmt n, Object arg) {
+	public void visit(TypeDeclarationStmt n, Object arg) {
         n.getTypeDeclaration().accept(this, arg);
     }
 
@@ -1327,6 +1296,7 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
         if (n.getInit() != null) {
             for (Iterator<Expression> i = n.getInit().iterator(); i.hasNext();) {
                 Expression e = i.next();
+                e.setEnclosingScope(n.getEnclosingScope());
                 e.accept(this, arg);
                 if (i.hasNext()) {
                     printer.print(", ");
@@ -1335,7 +1305,6 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
         }
         printer.print("; ");
         if (n.getCompare() != null) {
-        	n.getCompare().setEnclosingScope(n.getEnclosingScope());
             n.getCompare().accept(this, arg);
         }
         printer.print("; ");
@@ -1349,7 +1318,6 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
             }
         }
         printer.print(") ");
-        n.getBody().setEnclosingScope(n.getEnclosingScope());
         n.getBody().accept(this, arg);
     }
 
@@ -1484,6 +1452,7 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
 			throw new A2SemanticsException(methodName + "stashed in node and resolved as a " + sym.getType().toString() + "type instead MethodSymbol");
 		}
 		Statement yieldStmt = ((MethodSymbol) sym).resolveYield(methodName);
+		yieldStmt.setEnclosingScope(n.getEnclosingScope());
 		yieldStmt.accept(this, arg);
 	}
 }

@@ -14,8 +14,6 @@ public class StudentSample {
  	public static void sampleMethod() {
 		System.out.println("Execution started");
 		yield;
-		System.out.println("Execution midway"); 
-		yield;
 		System.out.println("Execution ended"); 
 	}
 

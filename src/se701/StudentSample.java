@@ -14,13 +14,6 @@ public class StudentSample {
     }
 }
 
-        System.out.println("Execution midway");
-            {
-    for (int i = 0; i < 20; i++) {
-        System.out.println(i);
-    }
-}
-
         System.out.println("Execution ended");
     }
 }

@@ -410,83 +410,6 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(FieldDeclaration n, Object arg) {
-    	
-        if (n.getJavaDoc() != null) {
-            n.getJavaDoc().accept(this, arg);
-        }
-        printMemberAnnotations(n.getAnnotations(), arg);
-        printModifiers(n.getModifiers());
-        n.getType().accept(this, arg);
-        //TODO
-        
-        Scope scope = n.getEnclosingScope();
-        String varType = n.getType().toString();
-
-        printer.print(" ");
-        for (Iterator<VariableDeclarator> i = n.getVariables().iterator(); i.hasNext();) {
-        	VariableDeclarator v = i.next();
-        	String varName = v.getId().toString();
-        	Symbol sym = scope.resolve(varType);
-        	if(sym == null){
-        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-        	}
-        	if(!(sym instanceof symtab.Type)){
-        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
-        	}
-        	Symbol variable = scope.resolve(varName);
-        	if(variable != null){
-        		throw new A2SemanticsException(v.getId().toString() + " on line " + v.getId().getBeginLine() + " is already defined. Try another variable name.");
-        	}
-
-        	symtab.Type type = scope.resolve(varType).getType();
-        	Symbol symbol = new VariableSymbol(varName, type);
-        	scope.define(symbol);
-        	v.accept(this, arg);
-        	if (i.hasNext()) {
-        		printer.print(", ");
-        	}
-        }
-
-        printer.print(";");
-    }
-    
-    //TODO remove from here
-    private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
-    	symtab.Type type = null;
-    	if(init != null){
-    		Symbol sym = null;
-    		if(init.getClass() == NameExpr.class){
-    			sym = scope.resolve(init.toString());
-    			if(sym == null){
-    				throw new A2SemanticsException(init + " is not defined on line " + init.getBeginLine());
-    			}
-    			if(!(sym.getType() instanceof symtab.Type)){
-    				throw new A2SemanticsException(init + " is not valid on line " + init.getBeginLine());
-    			}
-    			type = sym.getType();
-    		}else{
-    			//NOTE: IntegerLiteralExpr extends StringLiteralExpr, so must check IntegerLiteralExpr first
-    			if(init.getClass() == IntegerLiteralExpr.class){
-    				sym = scope.resolve("int");
-    			}else if(init.getClass() == BooleanLiteralExpr.class){
-    				sym = scope.resolve("boolean");
-    			}else if (init.getClass() == StringLiteralExpr.class){
-    				sym = scope.resolve("String");
-    			}else if (init.getClass() == MethodCallExpr.class){
-    				// for each get argument type, deal with mutiple method paramterss, get type by using methodSym
-    				sym = scope.resolve(((MethodCallExpr) init).getName());
-    			}
-    			//TODO other primitive types (and others?)
-    			else{
-    				System.out.println("Add " + init.getClass() + " to getTypeofExpression helper method");
-    			}
-    			type = sym.getType(); 
-    		}
-    	}
-    	if(type == null){
-    		throw new A2SemanticsException(init + " is not defined on line " + init.getBeginLine());
-    	}
-    	return type;
     }
     
     public void visit(VariableDeclarator n, Object arg) {
@@ -766,8 +689,6 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     	if (yield != null){
     		Scope scope = n.getEnclosingScope();
     		MethodSymbol sym = (MethodSymbol)scope.resolve(n.getName());
-    		sym.defineYield(n.getName(), yield);
-    		
     		while (!(scope instanceof ClassSymbol)){
     			// get class scope
     			scope = scope.getEnclosingScope();
@@ -775,7 +696,6 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     		scope = ((ClassSymbol)scope).getYieldScope(n.getName());
     		Scope localScope = new LocalScope(scope);
     		yield.setEnclosingScope(localScope);
-    		yield.accept(this, arg);
     	}
         if (n.getScope() != null) {
             n.getScope().accept(this, arg);
@@ -895,100 +815,11 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(MethodDeclaration n, Object arg) {
-    	
-    	//TODO move scope here
-        if (n.getJavaDoc() != null) {
-            n.getJavaDoc().accept(this, arg);
-        }
-        Scope scope = n.getEnclosingScope();
-        String varType = n.getType().toString();
-        String varName = n.getName().toString();
-        Symbol sym = scope.resolve(varType);
-        if(sym == null){
-        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-        }
-        if(!(sym instanceof symtab.Type)){
-        	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
-        }
-        symtab.Type type = scope.resolve(varType).getType();
-        Symbol methodSym = scope.resolve(varName);
-        if (!(methodSym instanceof MethodSymbol)){
-        	throw new A2SemanticsException(n.getName() + " on line " + n.getType().getBeginLine() + " is not a valid method symbol");
-        }
-        MethodSymbol existingMethodSymbol = (MethodSymbol)methodSym;
-        existingMethodSymbol.setType(type);
-//        Symbol symbol = new MethodSymbol(varName, type, scope, n.getParameters());
-        scope.define(existingMethodSymbol);
-        //TODO deal with method types (ie resolve etc etc)
-        
-        
-        System.err.println();
-        printMemberAnnotations(n.getAnnotations(), arg);
-        printModifiers(n.getModifiers());
-
-        printTypeParameters(n.getTypeParameters(), arg);
-        if (n.getTypeParameters() != null) {
-            printer.print(" ");
-        }
-        
-        if (n.getParameters() != null) {
-            for (Iterator<Parameter> i = n.getParameters().iterator(); i.hasNext();) {
-                Parameter p = i.next();
-                p.accept(this, arg);
-                if (i.hasNext()) {
-                    printer.print(", ");
-                }
-            }
-        }
-
-        n.getType().accept(this, arg);
-        printer.print(" ");
-        printer.print(n.getName());
-
-        for (int i = 0; i < n.getArrayCount(); i++) {
-            printer.print("[]");
-        }
-
-        if (n.getThrows() != null) {
-            printer.print(" throws ");
-            for (Iterator<NameExpr> i = n.getThrows().iterator(); i.hasNext();) {
-                NameExpr name = i.next();
-                name.accept(this, arg);
-                if (i.hasNext()) {
-                    printer.print(", ");
-                }
-            }
-        }
-        if (n.getBody() == null) {
-            printer.print(";");
-        } else {
-            printer.print(" ");
-            n.getBody().setParams(n.getParameters());
-            n.getBody().accept(this, arg);
-        }
     }
 
     public void visit(Parameter n, Object arg) {
         printAnnotations(n.getAnnotations(), arg);
         printModifiers(n.getModifiers());
-        Scope scope = n.getEnclosingScope();
-        String varType = n.getType().toString();
-        String varName = n.getId().toString();
-        Symbol sym = scope.resolve(varType);
-      if(sym == null){
-      	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-      }
-      if(!(sym instanceof symtab.Type)){
-      	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
-      }
-      	symtab.Type type = scope.resolve(varType).getType();
-        Symbol variable = scope.resolveLocal(varName);
-        if(variable != null){
-        	throw new A2SemanticsException(n.getId().toString() + " on line " + n.getId().getBeginLine() + " is already defined. Try another variable name.");
-        }
-        Symbol symbol = new VariableSymbol(varName, type);
-        scope.define(symbol);
-        //TODO: defines parameter variables for a scope
         n.getType().accept(this, arg);
         if (n.isVarArgs()) {
             printer.print("...");
@@ -1438,8 +1269,5 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
 
 	@Override
 	public void visit(YieldStmt n, Object arg) {
-		Scope scope = n.getEnclosingScope();
-		
-		
 	}
 }

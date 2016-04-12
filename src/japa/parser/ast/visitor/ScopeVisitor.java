@@ -120,6 +120,7 @@ import symtab.Scope;
 import symtab.Symbol;
 import symtab.VariableSymbol;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -131,7 +132,6 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
 
     private final SourcePrinter printer = new SourcePrinter();
     private Scope currentScope = new GlobalScope();
-
     public String getSource() {
         return printer.getSource();
     }
@@ -727,10 +727,6 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
             }
         }
         printer.print(")");
-        BlockStmt yield = (BlockStmt)n.getYieldBlock();
-    	if (yield != null){
-    		yield.accept(this, arg);
-    	}
     }
 
     public void visit(ObjectCreationExpr n, Object arg) {
@@ -1354,12 +1350,5 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
 	@Override
 	public void visit(YieldStmt n, Object arg) {
 		n.setEnclosingScope(currentScope);
-		// Set yield scope to be accessed by all scopes
-		Scope scope = currentScope;
-		while (!(scope instanceof ClassSymbol)){
-			// get class scope
-			scope = scope.getEnclosingScope();
-		}
-			((ClassSymbol)scope).defineYieldScope(n.getId(), currentScope);
 	}
 }

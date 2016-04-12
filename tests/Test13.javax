@@ -1,0 +1,12 @@
+package tests;
+
+public class test13 {
+
+	int field;
+
+ 	public static void sampleMethod() {
+		field = 3;
+	}
+
+}
+

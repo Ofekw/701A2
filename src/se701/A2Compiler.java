@@ -11,6 +11,7 @@ import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.visitor.DumpVisitor;
 import japa.parser.ast.visitor.ResolvingVisitor;
 import japa.parser.ast.visitor.ScopeVisitor;
+import japa.parser.ast.visitor.YieldVisitor;
 import japa.parser.ast.visitor.DefinitionVisitor;
 
 public class A2Compiler {
@@ -28,12 +29,13 @@ public class A2Compiler {
 		ScopeVisitor scopeV = new ScopeVisitor();
 		ast.accept(scopeV, null);
 		
-		//Create Parent Visitor
-		
-		
 		// Create Definition Visitor
 		DefinitionVisitor definitionV = new DefinitionVisitor();
 		ast.accept(definitionV, null);
+		
+		//Yield Visitor
+		YieldVisitor yieldV = new YieldVisitor();
+		ast.accept(yieldV, null);
 		
 		//Resolver
 		ResolvingVisitor resolvingV = new ResolvingVisitor();
