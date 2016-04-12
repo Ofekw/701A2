@@ -727,6 +727,10 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
             }
         }
         printer.print(")");
+        BlockStmt yield = (BlockStmt)n.getYieldBlock();
+    	if (yield != null){
+    		yield.accept(this, arg);
+    	}
     }
 
     public void visit(ObjectCreationExpr n, Object arg) {
@@ -986,7 +990,8 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
 
     public void visit(BlockStmt n, Object arg) {
         printer.printLn("{");
-        this.currentScope = new LocalScope(this.currentScope);
+        Scope localScope =  new LocalScope(this.currentScope);
+        this.currentScope = localScope;
         n.setEnclosingScope(this.currentScope);
         if (n.getStmts() != null) {
             printer.indent();
@@ -997,9 +1002,6 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
             printer.unindent();
         }
         printer.print("}");
-        
-        //TODO maybe?
-        // pop the scope to the enclosing scope 
         this.currentScope = this.currentScope.getEnclosingScope();
 
     }
@@ -1352,6 +1354,12 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
 	@Override
 	public void visit(YieldStmt n, Object arg) {
 		n.setEnclosingScope(currentScope);
-		
+		// Set yield scope to be accessed by all scopes
+		Scope scope = currentScope;
+		while (!(scope instanceof ClassSymbol)){
+			// get class scope
+			scope = scope.getEnclosingScope();
+		}
+			((ClassSymbol)scope).defineYieldScope(n.getId(), currentScope);
 	}
 }

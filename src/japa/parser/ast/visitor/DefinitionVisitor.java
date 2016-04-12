@@ -767,11 +767,21 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     		Scope scope = n.getEnclosingScope();
     		MethodSymbol sym = (MethodSymbol)scope.resolve(n.getName());
     		sym.defineYield(n.getName(), yield);
-//    		n.getEnclosingScope().getEnclosingScope().defineYield(n.getName(), yield);
+    		
+    		while (!(scope instanceof ClassSymbol)){
+    			// get class scope
+    			scope = scope.getEnclosingScope();
+    		}
+    		scope = ((ClassSymbol)scope).getYieldScope(n.getName());
+    		Scope localScope = new LocalScope(scope);
+    		yield.setEnclosingScope(localScope);
+    		yield.accept(this, arg);
     	}
         if (n.getScope() != null) {
             n.getScope().accept(this, arg);
         }
+        
+
     }
 
     public void visit(ObjectCreationExpr n, Object arg) {
@@ -1032,6 +1042,7 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
 
         for (Iterator<VariableDeclarator> i = n.getVars().iterator(); i.hasNext();) {
             VariableDeclarator v = i.next();
+            v.setEnclosingScope(n.getEnclosingScope());
             v.accept(this, arg);
             if (i.hasNext()) {
                 printer.print(", ");
@@ -1065,16 +1076,11 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(BlockStmt n, Object arg) {
-//    	if (n.getParams() != null) {
-//            for (Iterator<Parameter> i = n.getParams().iterator(); i.hasNext();) {
-//                Parameter p = i.next();
-//                p.accept(this, arg);
-//            }
-//        }
         printer.printLn("{");
         if (n.getStmts() != null) {
             printer.indent();
             for (Statement s : n.getStmts()) {
+            	s.setEnclosingScope(n.getEnclosingScope());
                 s.accept(this, arg);
                 printer.printLn();
             }
@@ -1095,6 +1101,7 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(ExpressionStmt n, Object arg) {
+    	n.getExpression().setEnclosingScope(n.getEnclosingScope());
         n.getExpression().accept(this, arg);
         printer.print(";");
     }

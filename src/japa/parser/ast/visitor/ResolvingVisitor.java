@@ -804,6 +804,10 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
             }
         }
         printer.print(")");
+    	BlockStmt yield = (BlockStmt)n.getYieldBlock();
+    	if (yield != null){
+    		yield.accept(this, arg);
+    	}
     }
 
     public void visit(ObjectCreationExpr n, Object arg) {

@@ -1308,6 +1308,9 @@ public final class DumpVisitor implements VoidVisitor<Object> {
 		String methodName = n.getId();
 		Scope scope = n.getEnclosingScope().getEnclosingScope();
 		Symbol sym = scope.resolve(methodName);
+		if (sym == null){
+			throw new A2SemanticsException(methodName + "is not in scope");
+		}
 		if (!(sym instanceof MethodSymbol)){
 			throw new A2SemanticsException(methodName + "stashed in node and resolved as a " + sym.getType().toString() + "type instead MethodSymbol");
 		}

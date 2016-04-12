@@ -7,7 +7,7 @@ public class ScopedSymbol extends Symbol implements Scope {
 	
 	protected Scope enclosingScope = null;
 	// Key: Name; Value: Symbol
-	private HashMap<String,Symbol> symbols = new HashMap<String,Symbol>();
+	protected HashMap<String,Symbol> symbols = new HashMap<String,Symbol>();
 	//Key: Method Name; Value: YieldBlock
 	private HashMap<String,Statement> yieldBlocks = new HashMap<String,Statement>(); 
 
