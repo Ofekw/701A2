@@ -33,9 +33,9 @@ public class A2Compiler {
 		DefinitionVisitor definitionV = new DefinitionVisitor();
 		ast.accept(definitionV, null);
 		
-		//Yield Visitor
-		YieldVisitor yieldV = new YieldVisitor();
-		ast.accept(yieldV, null);
+//		//Yield Visitor
+//		YieldVisitor yieldV = new YieldVisitor();
+//		ast.accept(yieldV, null);
 		
 		//Resolver
 		ResolvingVisitor resolvingV = new ResolvingVisitor();
