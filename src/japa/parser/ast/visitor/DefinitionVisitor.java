@@ -410,6 +410,43 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(FieldDeclaration n, Object arg) {
+    	 if (n.getJavaDoc() != null) {
+             n.getJavaDoc().accept(this, arg);
+         }
+         printMemberAnnotations(n.getAnnotations(), arg);
+         printModifiers(n.getModifiers());
+         n.getType().accept(this, arg);
+         //TODO
+         
+         Scope scope = n.getEnclosingScope();
+         String varType = n.getType().toString();
+
+         printer.print(" ");
+         for (Iterator<VariableDeclarator> i = n.getVariables().iterator(); i.hasNext();) {
+         	VariableDeclarator v = i.next();
+         	String varName = v.getId().toString();
+         	Symbol sym = scope.resolve(varType);
+         	if(sym == null){
+         		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
+         	}
+         	if(!(sym instanceof symtab.Type)){
+         		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
+         	}
+         	Symbol variable = scope.resolve(varName);
+         	if(variable != null){
+         		throw new A2SemanticsException(v.getId().toString() + " on line " + v.getId().getBeginLine() + " is already defined. Try another variable name.");
+         	}
+
+         	symtab.Type type = scope.resolve(varType).getType();
+         	Symbol symbol = new VariableSymbol(varName, type);
+         	scope.define(symbol);
+         	v.accept(this, arg);
+         	if (i.hasNext()) {
+         		printer.print(", ");
+         	}
+         }
+
+         printer.print(";");
     }
     
     public void visit(VariableDeclarator n, Object arg) {
@@ -815,11 +852,95 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(MethodDeclaration n, Object arg) {
+    	 if (n.getJavaDoc() != null) {
+             n.getJavaDoc().accept(this, arg);
+         }
+         Scope scope = n.getEnclosingScope();
+         String varType = n.getType().toString();
+         String varName = n.getName().toString();
+         Symbol sym = scope.resolve(varType);
+         if(sym == null){
+         	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
+         }
+         if(!(sym instanceof symtab.Type)){
+         	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
+         }
+         symtab.Type type = scope.resolve(varType).getType();
+         Symbol methodSym = scope.resolve(varName);
+         if (!(methodSym instanceof MethodSymbol)){
+         	throw new A2SemanticsException(n.getName() + " on line " + n.getType().getBeginLine() + " is not a valid method symbol");
+         }
+         MethodSymbol existingMethodSymbol = (MethodSymbol)methodSym;
+         existingMethodSymbol.setType(type);
+         scope.define(existingMethodSymbol);
+         
+         System.err.println();
+         printMemberAnnotations(n.getAnnotations(), arg);
+         printModifiers(n.getModifiers());
+
+         printTypeParameters(n.getTypeParameters(), arg);
+         if (n.getTypeParameters() != null) {
+             printer.print(" ");
+         }
+         
+         if (n.getParameters() != null) {
+             for (Iterator<Parameter> i = n.getParameters().iterator(); i.hasNext();) {
+                 Parameter p = i.next();
+                 p.accept(this, arg);
+                 if (i.hasNext()) {
+                     printer.print(", ");
+                 }
+             }
+         }
+
+         n.getType().accept(this, arg);
+         printer.print(" ");
+         printer.print(n.getName());
+
+         for (int i = 0; i < n.getArrayCount(); i++) {
+             printer.print("[]");
+         }
+
+         if (n.getThrows() != null) {
+             printer.print(" throws ");
+             for (Iterator<NameExpr> i = n.getThrows().iterator(); i.hasNext();) {
+                 NameExpr name = i.next();
+                 name.accept(this, arg);
+                 if (i.hasNext()) {
+                     printer.print(", ");
+                 }
+             }
+         }
+         if (n.getBody() == null) {
+             printer.print(";");
+         } else {
+             printer.print(" ");
+             n.getBody().setParams(n.getParameters());
+             n.getBody().accept(this, arg);
+         }
     }
 
     public void visit(Parameter n, Object arg) {
-        printAnnotations(n.getAnnotations(), arg);
+    	printAnnotations(n.getAnnotations(), arg);
         printModifiers(n.getModifiers());
+        Scope scope = n.getEnclosingScope();
+        String varType = n.getType().toString();
+        String varName = n.getId().toString();
+        Symbol sym = scope.resolve(varType);
+      if(sym == null){
+      	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
+      }
+      if(!(sym instanceof symtab.Type)){
+      	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
+      }
+      	symtab.Type type = scope.resolve(varType).getType();
+        Symbol variable = scope.resolveLocal(varName);
+        if(variable != null){
+        	throw new A2SemanticsException(n.getId().toString() + " on line " + n.getId().getBeginLine() + " is already defined. Try another variable name.");
+        }
+        Symbol symbol = new VariableSymbol(varName, type);
+        scope.define(symbol);
+        //TODO: defines parameter variables for a scope
         n.getType().accept(this, arg);
         if (n.isVarArgs()) {
             printer.print("...");

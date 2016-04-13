@@ -137,6 +137,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     private void printModifiers(int modifiers) {
+    	
         if (ModifierSet.isPrivate(modifiers)) {
             printer.print("private ");
         }
@@ -231,6 +232,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(CompilationUnit n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         if (n.getPakage() != null) {
             n.getPakage().accept(this, arg);
         }
@@ -252,6 +254,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(PackageDeclaration n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printAnnotations(n.getAnnotations(), arg);
         printer.print("package ");
         n.getName().accept(this, arg);
@@ -260,16 +263,21 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(NameExpr n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print(n.getName());
     }
 
     public void visit(QualifiedNameExpr n, Object arg) {
+    	n.setEnclosingScope(currentScope);
+    	n.setEnclosingScope(currentScope);
         n.getQualifier().accept(this, arg);
         printer.print(".");
         printer.print(n.getName());
     }
 
     public void visit(ImportDeclaration n, Object arg) {
+    	n.setEnclosingScope(currentScope);
+    	n.setEnclosingScope(currentScope);
         printer.print("import ");
         if (n.isStatic()) {
             printer.print("static ");
@@ -323,6 +331,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(EmptyTypeDeclaration n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         if (n.getJavaDoc() != null) {
             n.getJavaDoc().accept(this, arg);
         }
@@ -336,6 +345,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(ClassOrInterfaceType n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         if (n.getScope() != null) {
             n.getScope().accept(this, arg);
             printer.print(".");
@@ -345,6 +355,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(TypeParameter n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print(n.getName());
         if (n.getTypeBound() != null) {
             printer.print(" extends ");
@@ -388,6 +399,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(ReferenceType n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         n.getType().accept(this, arg);
         for (int i = 0; i < n.getArrayCount(); i++) {
             printer.print("[]");
@@ -395,6 +407,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(WildcardType n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print("?");
         if (n.getExtends() != null) {
             printer.print(" extends ");
@@ -431,8 +444,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(VariableDeclarator n, Object arg) {
-    	
-        
+    	n.setEnclosingScope(currentScope);        
         n.getId().accept(this, arg);
         if (n.getInit() != null) {
             printer.print(" = ");
@@ -441,6 +453,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(VariableDeclaratorId n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print(n.getName());
         for (int i = 0; i < n.getArrayCount(); i++) {
             printer.print("[]");
@@ -448,6 +461,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(ArrayInitializerExpr n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print("{");
         if (n.getValues() != null) {
             printer.print(" ");
@@ -464,10 +478,12 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(VoidType n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print("void");
     }
 
     public void visit(ArrayAccessExpr n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         n.getName().accept(this, arg);
         printer.print("[");
         n.getIndex().accept(this, arg);
@@ -475,6 +491,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(ArrayCreationExpr n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print("new ");
         n.getType().accept(this, arg);
         printTypeArgs(n.getTypeArgs(), arg);
@@ -1160,6 +1177,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(IfStmt n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print("if (");
         n.getCondition().accept(this, arg);
         printer.print(") ");
@@ -1171,6 +1189,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(WhileStmt n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print("while (");
         n.getCondition().accept(this, arg);
         printer.print(") ");
@@ -1195,6 +1214,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(ForeachStmt n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print("for (");
         n.getVariable().accept(this, arg);
         printer.print(" : ");
@@ -1204,6 +1224,7 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(ForStmt n, Object arg) {
+    	n.setEnclosingScope(currentScope);
         printer.print("for (");
         if (n.getInit() != null) {
             for (Iterator<Expression> i = n.getInit().iterator(); i.hasNext();) {
