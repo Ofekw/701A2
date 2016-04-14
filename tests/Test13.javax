@@ -4,8 +4,9 @@ public class test13 {
 
 	int field;
 
- 	public static void sampleMethod() {
+ 	public static int sampleMethod() {
 		field = 3;
+		return field;
 	}
 
 }

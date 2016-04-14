@@ -1,0 +1,17 @@
+package tests;
+
+public class test12 {
+
+	public static void main(String[] args){ 
+		sampleMethod(){ 
+			int i = 2; // not allowed
+		}; 
+	} 
+
+ 	public static void sampleMethod() {
+		System.out.println("Execution started");
+		System.out.println("Execution ended"); 
+	}
+
+}
+

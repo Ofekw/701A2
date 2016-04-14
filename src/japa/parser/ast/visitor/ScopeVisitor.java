@@ -1340,5 +1340,11 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
 	@Override
 	public void visit(YieldStmt n, Object arg) {
 		n.setEnclosingScope(currentScope);
+		Scope scope = currentScope;
+		while (!(scope instanceof ClassSymbol)){
+			// get class scope
+			scope = scope.getEnclosingScope();
+		}
+		((ClassSymbol)scope).defineYieldScope(n.getId(), currentScope);
 	}
 }

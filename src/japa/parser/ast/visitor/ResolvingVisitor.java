@@ -688,6 +688,21 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
         	throw new A2SemanticsException(n.getName()+ " on line " + n.getBeginLine() + " has parameters in the method signature which where not assigned");
         }
         
+    	Statement yield = n.getYieldBlock();
+    	if (yield != null){
+    		MethodSymbol methodSym = (MethodSymbol)scope.resolve(n.getName());
+    		methodSym.defineYield(n.getName(), yield);
+    		
+    		while (!(scope instanceof ClassSymbol)){
+    			// get class scope
+    			scope = scope.getEnclosingScope();
+    		}
+    		scope = ((ClassSymbol)scope).getYieldScope(n.getName());
+    		if (scope == null){
+    			throw new A2SemanticsException(n.getName()+ " on line " + n.getBeginLine() + " does not have a yield statement, hence a yield block is invalid");
+    		}
+    	}
+        
         printTypeArgs(n.getTypeArgs(), arg);
         
         

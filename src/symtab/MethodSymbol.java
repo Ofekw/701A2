@@ -7,7 +7,6 @@ import japa.parser.ast.body.Parameter;
 
 public class MethodSymbol extends ScopedSymbol {
 
-	// TODO add paramater types
 	private List<Parameter> methodParameter = new ArrayList<Parameter>();
 	
 	public MethodSymbol(String name, Scope enScope) {
