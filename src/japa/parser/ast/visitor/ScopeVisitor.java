@@ -137,40 +137,6 @@ public final class ScopeVisitor implements VoidVisitor<Object> {
     }
 
     private void printModifiers(int modifiers) {
-    	
-        if (ModifierSet.isPrivate(modifiers)) {
-            
-        }
-        if (ModifierSet.isProtected(modifiers)) {
-            
-        }
-        if (ModifierSet.isPublic(modifiers)) {
-            
-        }
-        if (ModifierSet.isAbstract(modifiers)) {
-            
-        }
-        if (ModifierSet.isStatic(modifiers)) {
-            
-        }
-        if (ModifierSet.isFinal(modifiers)) {
-            
-        }
-        if (ModifierSet.isNative(modifiers)) {
-            
-        }
-        if (ModifierSet.isStrictfp(modifiers)) {
-            
-        }
-        if (ModifierSet.isSynchronized(modifiers)) {
-            
-        }
-        if (ModifierSet.isTransient(modifiers)) {
-            
-        }
-        if (ModifierSet.isVolatile(modifiers)) {
-            
-        }
     }
 
     private void printMembers(List<BodyDeclaration> members, Object arg) {

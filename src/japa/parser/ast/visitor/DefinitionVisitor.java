@@ -133,39 +133,6 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     }
 
     private void printModifiers(int modifiers) {
-        if (ModifierSet.isPrivate(modifiers)) {
-            
-        }
-        if (ModifierSet.isProtected(modifiers)) {
-            
-        }
-        if (ModifierSet.isPublic(modifiers)) {
-            
-        }
-        if (ModifierSet.isAbstract(modifiers)) {
-            
-        }
-        if (ModifierSet.isStatic(modifiers)) {
-            
-        }
-        if (ModifierSet.isFinal(modifiers)) {
-            
-        }
-        if (ModifierSet.isNative(modifiers)) {
-            
-        }
-        if (ModifierSet.isStrictfp(modifiers)) {
-            
-        }
-        if (ModifierSet.isSynchronized(modifiers)) {
-            
-        }
-        if (ModifierSet.isTransient(modifiers)) {
-            
-        }
-        if (ModifierSet.isVolatile(modifiers)) {
-            
-        }
     }
 
     private void printMembers(List<BodyDeclaration> members, Object arg) {
@@ -991,8 +958,6 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
         	throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a valid type");
         }
         symtab.Type type = scope.resolve(varType).getType();
-        //TODO
-        
 
         for (Iterator<VariableDeclarator> i = n.getVars().iterator(); i.hasNext();) {
             VariableDeclarator v = i.next();
@@ -1003,12 +968,14 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
             }
         	String varName = v.getId().toString();
 
-            Symbol variable = scope.resolve(varName);
+            Symbol variable = scope.resolveLocal(varName);
             if(variable != null){
             	throw new A2SemanticsException(v.getId().toString() + " on line " + v.getId().getBeginLine() + " is already defined. Try another variable name.");
             }
             
             Symbol symbol = new VariableSymbol(varName, type);
+            symbol.setDeclerationColumn(v.getBeginColumn());
+            symbol.setDeclerationLine(v.getBeginLine());
             scope.define(symbol);
             
         }
@@ -1104,15 +1071,14 @@ public final class DefinitionVisitor implements VoidVisitor<Object> {
     }
 
     public void visit(ReturnStmt n, Object arg) {
-        
         if (n.getExpr() != null) {
-            
             n.getExpr().accept(this, arg);
         }
         
     }
 
-    public void visit(EnumDeclaration n, Object arg) {
+
+	public void visit(EnumDeclaration n, Object arg) {
         if (n.getJavaDoc() != null) {
             n.getJavaDoc().accept(this, arg);
         }

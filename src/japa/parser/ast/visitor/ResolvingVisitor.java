@@ -135,39 +135,6 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     }
 
     private void printModifiers(int modifiers) {
-        if (ModifierSet.isPrivate(modifiers)) {
-            
-        }
-        if (ModifierSet.isProtected(modifiers)) {
-            
-        }
-        if (ModifierSet.isPublic(modifiers)) {
-            
-        }
-        if (ModifierSet.isAbstract(modifiers)) {
-            
-        }
-        if (ModifierSet.isStatic(modifiers)) {
-            
-        }
-        if (ModifierSet.isFinal(modifiers)) {
-            
-        }
-        if (ModifierSet.isNative(modifiers)) {
-            
-        }
-        if (ModifierSet.isStrictfp(modifiers)) {
-            
-        }
-        if (ModifierSet.isSynchronized(modifiers)) {
-            
-        }
-        if (ModifierSet.isTransient(modifiers)) {
-            
-        }
-        if (ModifierSet.isVolatile(modifiers)) {
-            
-        }
     }
 
     private void printMembers(List<BodyDeclaration> members, Object arg) {
@@ -535,23 +502,55 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     	if(typeOfRight.getName() != typeOfLeft.getName()){
     		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getValue().getBeginLine());
     	}
+    	
+    	//If within a method scope
+    	boolean withinMethod = isWithinMethodScope(scope);
+    	if (withinMethod){
+    		if (n.getBeginLine() < sym.getDeclerationLine()){
+    			throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + " cannot be assigned because it's only declared on line: " + sym.getDeclerationLine());
+    		}else if( n.getBeginLine()  ==  sym.getDeclerationLine() && n.getBeginColumn() < sym.getDeclerationColumn()){
+    			throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + ", column: "+ n.getBeginColumn() +" cannot be assigned because it's only declared on line: " + sym.getDeclerationLine() + " column: " + sym.getDeclerationColumn());
+    		}
+    	}
         n.getValue().accept(this, arg);
     }
+
+	private boolean isWithinMethodScope(Scope scope) {
+		while (scope != null){
+			if (scope instanceof MethodSymbol){
+				return true;
+			}
+			scope = scope.getEnclosingScope();
+		}
+		return false;
+	}
 
 	private Symbol fieldAccessExpr(Expression n, Scope scope, String varName) {
 		Symbol sym;
 		String[] objectField = varName.split("\\.");
 		String variableName = objectField[0];
 		String fieldName = objectField[1];
-		Symbol variableSym = scope.resolve(variableName);
+		Symbol variableSym = null;
+		if (variableName.contains("this")){
+			while (!(scope instanceof ClassSymbol)){
+				// get class scope
+				scope = scope.getEnclosingScope();
+			}
+			variableSym = scope.resolve(fieldName);
+		}else{
+			variableSym = scope.resolve(variableName);
+		}
 		if(variableSym == null){
 			throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + " is not a declared object");
 		}
 		Symbol classSym = scope.resolve(variableSym.getType().getName());
+		if (variableName.contains("this")){
+			sym = variableSym;
+			return sym;
+		}
 		if (!(classSym instanceof ClassSymbol)){
 			throw new A2SemanticsException(varName + " on line " + n.getBeginLine() + " is not a class object with fields");
 		}
-		
 		sym = ((ClassSymbol)classSym).resolve(fieldName);
 		return sym;
 	}
@@ -888,13 +887,15 @@ public final class ResolvingVisitor implements VoidVisitor<Object> {
     		VariableDeclarator v = i.next();
     		
     		Expression init = v.getInit();
-        	symtab.Type typeOfRight = getTypeOfExpression(init, scope);
-        	if(typeOfRight == null){
-        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
-        	}
-        	if(typeOfRight.getName() != typeOfLeft.getName()){
-        		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getType().getBeginLine());
-        	}
+    		if (init != null){
+	        	symtab.Type typeOfRight = getTypeOfExpression(init, scope);
+	        	if(typeOfRight == null){
+	        		throw new A2SemanticsException(n.getType().toString() + " on line " + n.getType().getBeginLine() + " is not a defined type");
+	        	}
+	        	if(typeOfRight.getName() != typeOfLeft.getName()){
+	        		throw new A2SemanticsException("Cannot convert from " + typeOfRight.getName() + " to " + typeOfLeft.getName() + " on line " + n.getType().getBeginLine());
+	        	}
+    		}
 
     		v.accept(this, arg);
     		if (i.hasNext()) {
@@ -1049,14 +1050,30 @@ private symtab.Type getTypeOfExpression(Expression init, Scope scope) {
     }
 
     public void visit(ReturnStmt n, Object arg) {
-        
+        Scope scope = n.getEnclosingScope();
+        Symbol sym = getEnclosingMethodSym(scope);
+        if(sym == null){
+        	throw new A2SemanticsException("Return statement on line: " + n.getBeginLine() + " is not within a method");
+        }
+        String returnType = getTypeOfExpression(n.getExpr(), scope).getName();
+        if (sym.getType().getName() != returnType){
+        	throw new A2SemanticsException("Return statement on line: " + n.getBeginLine() + " returns: " + returnType + " does not match method return type of: " + sym.getType().getName());
+        }
         if (n.getExpr() != null) {
             
             n.getExpr().accept(this, arg);
         }
-        
     }
 
+    private Symbol getEnclosingMethodSym(Scope scope) {
+    	while (scope != null){
+			if (scope instanceof MethodSymbol){
+				return (MethodSymbol)scope;
+			}
+			scope = scope.getEnclosingScope();
+		}
+		return null;
+	}
     public void visit(EnumDeclaration n, Object arg) {
         if (n.getJavaDoc() != null) {
             n.getJavaDoc().accept(this, arg);

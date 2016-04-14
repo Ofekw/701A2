@@ -1,0 +1,10 @@
+package tests;
+
+public class test17 {
+
+ 	public static String sampleMethod() {
+ 		return 5; // not allowed
+		
+	}
+}
+

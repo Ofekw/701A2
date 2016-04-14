@@ -1,0 +1,14 @@
+package tests;
+
+public class test16 {
+
+ 	public static void sampleMethod() {
+ 		j = 1;
+		x = 5; int x; //not allowed
+		
+	}
+	
+	int j;
+
+}
+

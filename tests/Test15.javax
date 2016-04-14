@@ -1,0 +1,14 @@
+package tests;
+
+public class test15 {
+
+	int j = 0;
+
+ 	public static void sampleMethod() {
+		this.j = 5;
+		String j;
+		this.j = j;
+	}
+
+}
+
